@@ -69,6 +69,7 @@ typedef enum {
     INFINI_DTYPE_C32 = 17,
     INFINI_DTYPE_C64 = 18,
     INFINI_DTYPE_BF16 = 19,
+    INFINI_DTYPE_I4 = 20,
 } infiniDtype_t;
 
 #endif // __INFINICORE_API_H__

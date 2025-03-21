@@ -11,6 +11,7 @@
 #include "infiniop/ops/gemm.h"
 #include "infiniop/ops/global_avg_pool.h"
 #include "infiniop/ops/matmul.h"
+#include "infiniop/ops/matmul_quantize.h"
 #include "infiniop/ops/max_pool.h"
 #include "infiniop/ops/mlp.h"
 #include "infiniop/ops/random_sample.h"
@@ -20,5 +21,6 @@
 #include "infiniop/ops/rotary_embedding.h"
 #include "infiniop/ops/swiglu.h"
 #include "infiniop/tensor_descriptor.h"
+
 
 #endif // __INFINIOP_API_H__
