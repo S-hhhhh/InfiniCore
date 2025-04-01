@@ -1,0 +1,31 @@
+#include "../../../binary/kunlun/binary_kunlun.h"
+#include <cmath>
+#include <iostream>
+#include <stddef.h>
+
+struct SwiGLUOp {
+private:
+    template <typename T>
+    __device__ T sigmoid(const T &x) const {
+        return 1 / (1 + exp(-x));
+    }
+
+public:
+    template <typename T>
+    __device__ T operator()(const T &up, const T &gate) const {
+        return gate * sigmoid(gate) * up;
+    }
+};
+
+void swiglu_f32(unsigned long long c_data_size,
+                unsigned long long ndim,
+                bool contiguous,
+                bool broadcasted, const unsigned long long *c_shape, const long long *c_strides, const unsigned long long *a_shape, const long long *a_strides,
+                const unsigned long long *b_shape, const long long *b_strides, void *c, const void *a, const void *b, XPUStream stream) {
+    
+    op::kunlun_common::binary_op::launch_calculate<float, SwiGLUOp>(c_data_size,
+                      ndim,
+                      contiguous,
+                      broadcasted, c_shape, c_strides, a_shape, a_strides,
+                      b_shape, b_strides, c, a, b, stream);
+}
