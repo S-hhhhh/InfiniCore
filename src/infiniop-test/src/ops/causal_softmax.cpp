@@ -4,8 +4,8 @@
 #include <iomanip>
 #include <iostream>
 
-namespace infiniop_test::causal_softmax{
-    struct Test::Attributes {
+namespace infiniop_test::causal_softmax {
+struct Test::Attributes {
     std::shared_ptr<Tensor> data;
     std::shared_ptr<Tensor> ans;
 };
@@ -33,7 +33,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     auto data = _attributes->data->to(device, device_id);
     auto ans = _attributes->ans->to(device, device_id);
     CHECK_OR(infiniopCreateCausalSoftmaxDescriptor(handle, &op_desc,
-                                          data->desc()),
+                                                   data->desc()),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to create op descriptor."));
     size_t workspace_size;
     CHECK_OR(infiniopGetCausalSoftmaxWorkspaceSize(op_desc, &workspace_size),
@@ -42,8 +42,8 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     CHECK_OR(infinirtMalloc(&workspace, workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to allocate workspace."));
     CHECK_OR(infiniopCausalSoftmax(op_desc, workspace, workspace_size,
-                          data->data(),
-                          nullptr),
+                                   data->data(),
+                                   nullptr),
              return TEST_FAILED(OP_EXECUTION_FAILED, "Failed during execution."));
 
     try {
@@ -71,7 +71,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 }
 
 std::vector<std::string> Test::attribute_names() {
-    return { };
+    return {};
 }
 
 std::vector<std::string> Test::tensor_names() {
@@ -93,4 +93,3 @@ Test::~Test() {
 }
 
 } // namespace infiniop_test::causal_softmax
-

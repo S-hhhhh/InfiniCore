@@ -21,11 +21,11 @@ DECLARE_INFINIOP_TEST(causal_softmax)
 /*
  * Register all the tests here
  */
-#define TEST_BUILDER_MAPPINGS                 \
-    {                                         \
-        REGISTER_INFINIOP_TEST(gemm)          \
-        REGISTER_INFINIOP_TEST(random_sample) \
-        REGISTER_INFINIOP_TEST(causal_softmax)\
+#define TEST_BUILDER_MAPPINGS                  \
+    {                                          \
+        REGISTER_INFINIOP_TEST(gemm)           \
+        REGISTER_INFINIOP_TEST(random_sample)  \
+        REGISTER_INFINIOP_TEST(causal_softmax) \
     }
 
 namespace infiniop_test {
