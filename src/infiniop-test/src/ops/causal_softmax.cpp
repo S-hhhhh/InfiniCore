@@ -61,7 +61,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
                 data->data(),
                 nullptr);
         },
-        warm_ups , iterations );
+        warm_ups, iterations);
 
     return TEST_PASSED(elapsed_time);
 }
@@ -89,4 +89,3 @@ Test::~Test() {
 }
 
 } // namespace infiniop_test::causal_softmax
-
