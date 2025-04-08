@@ -9,14 +9,12 @@ from .. import InfiniopTestWriter, InfiniopTestCase, np_dtype_to_ggml, gguf_stri
 def causal_softmax(x):
     if not isinstance(x, np.ndarray):
         raise TypeError("Input must be a NumPy array.")
-    original_dtype = x.dtype
-    x = x.astype(np.float32)
     mask = np.tril(np.ones_like(x), k=-1)
     mask = np.flip(mask, axis=(-2, -1))
     masked = np.where(mask == 1, -np.inf, x)
     exp_values = np.exp(masked - np.max(masked, axis=-1, keepdims=True))
     softmax_result = exp_values / np.sum(exp_values, axis=-1, keepdims=True)
-    return softmax_result.astype(original_dtype)
+    return softmax_result
 
 
 def random_tensor(shape, dtype):
@@ -45,9 +43,11 @@ class CausalSoftmaxTestCase(InfiniopTestCase):
             raw_dtype=np_dtype_to_ggml(self.data.dtype),
         )
         ans = causal_softmax(
-            self.data,
+            self.data.astype(np.float64),
         )
-        test_writer.add_tensor(test_writer.gguf_key("ans"), ans)
+        test_writer.add_tensor(
+            test_writer.gguf_key("ans"), ans, raw_dtype=gguf.GGMLQuantizationType.F64
+        )
 
 
 if __name__ == "__main__":
