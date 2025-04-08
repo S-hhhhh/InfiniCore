@@ -43,7 +43,7 @@ class CausalSoftmaxTestCase(InfiniopTestCase):
             self.data,
         )
         test_writer.add_tensor(
-            test_writer.gguf_key("ans"), ans, raw_dtype=gguf.GGMLQuantizationType.F32)
+            test_writer.gguf_key("ans"), ans)
 
 if __name__ == "__main__":
     test_writer = InfiniopTestWriter("causal_softmax.gguf")
@@ -79,6 +79,38 @@ if __name__ == "__main__":
         ),
         CausalSoftmaxTestCase(
             random_tensor((5, 9, 200), np.float32),
+            gguf_strides(1800, 200, 1),
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((3, 3), np.float16),
+            None,
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((32, 512), np.float16),
+            gguf_strides(1024, 1),
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((32, 5, 5), np.float16),
+            None,
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((32, 20, 512), np.float16),
+            None,
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((32, 20, 512), np.float16),
+            gguf_strides(20480, 512, 1),
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((9, 10, 1024), np.float16),
+            None,
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((32, 120), np.float16),
+            None,
+        ),
+        CausalSoftmaxTestCase(
+            random_tensor((5, 9, 200), np.float16),
             gguf_strides(1800, 200, 1),
         ),
     ]
