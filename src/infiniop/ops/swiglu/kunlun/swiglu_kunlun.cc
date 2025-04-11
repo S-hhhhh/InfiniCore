@@ -1,12 +1,14 @@
 #include "swiglu_kunlun.h"
 #include "../../../devices/kunlun/kunlun_handle.h"
+#include "../../../devices/kunlun/kunlun_type.h"
 #include <memory>
 #include <stdint.h>
-void swiglu_f32(unsigned long long c_data_size,
-                unsigned long long ndim,
+
+void swiglu_f32(kunlun_size_t c_data_size,
+                kunlun_size_t ndim,
                 bool contiguous,
-                bool broadcasted, const unsigned long long *c_shape, const long long *c_strides, const unsigned long long *a_shape, const long long *a_strides,
-                const unsigned long long *b_shape, const long long *b_strides, void *c, const void *a, const void *b, XPUStream stream);
+                bool broadcasted, const kunlun_size_t *c_shape, const kunlun_ptrdiff_t *c_strides, const kunlun_size_t *a_shape, const kunlun_ptrdiff_t *a_strides,
+                const kunlun_size_t *b_shape, const kunlun_ptrdiff_t *b_strides, float *c, const float *a, const float *b, XPUStream stream);
 
 namespace op::swiglu::kunlun {
 
@@ -54,21 +56,21 @@ infiniStatus_t Descriptor::calculate(
     const void *a,
     const void *b,
     void *stream) const {
-    unsigned long long c_data_size = _info.c_data_size;
-    unsigned long long ndim = _info.ndim;
+    kunlun_size_t c_data_size = _info.c_data_size;
+    kunlun_size_t ndim = _info.ndim;
     bool contiguous = _info.contiguous;
     bool broadcasted = _info.broadcasted;
 
-    char *tmp = (char *)malloc(3 * ndim * (sizeof(unsigned long long) + sizeof(long long))); // 昆仑芯涉及的int64,uint64等数据类型必须全部用long long取代
-    char *tmp_stride = tmp + 3 * ndim * sizeof(unsigned long long);
-    unsigned long long *c_shape = (unsigned long long *)tmp;
-    unsigned long long *a_shape = c_shape + ndim;
-    unsigned long long *b_shape = a_shape + ndim;
+    char *tmp = (char *)malloc(3 * ndim * (sizeof(kunlun_size_t) + sizeof(kunlun_ptrdiff_t))); // 昆仑芯涉及的int64,uint64等数据类型必须全部用kunlun_ptrdiff_t取代
+    char *tmp_stride = tmp + 3 * ndim * sizeof(kunlun_size_t);
+    kunlun_size_t *c_shape = (kunlun_size_t *)tmp;
+    kunlun_size_t *a_shape = c_shape + ndim;
+    kunlun_size_t *b_shape = a_shape + ndim;
 
-    long long *c_strides = (long long *)tmp_stride;
-    long long *a_strides = c_strides + ndim;
-    long long *b_strides = a_strides + ndim;
-    for (unsigned long long i = 0; i < ndim; i++) {
+    kunlun_ptrdiff_t *c_strides = (kunlun_ptrdiff_t *)tmp_stride;
+    kunlun_ptrdiff_t *a_strides = c_strides + ndim;
+    kunlun_ptrdiff_t *b_strides = a_strides + ndim;
+    for (kunlun_size_t i = 0; i < ndim; i++) {
         c_strides[i] = _info.c_strides.data()[i];
         a_strides[i] = _info.a_strides.data()[i];
         b_strides[i] = _info.b_strides.data()[i];
@@ -84,7 +86,7 @@ infiniStatus_t Descriptor::calculate(
                    ndim,
                    contiguous,
                    broadcasted, c_shape, c_strides, a_shape, a_strides,
-                   b_shape, b_strides, c, a, b, reinterpret_cast<kunlunStream_t>(stream));
+                   b_shape, b_strides, (float *)c, (float *)a, (float *)b, reinterpret_cast<kunlunStream_t>(stream));
         break;
     default:
         return INFINI_STATUS_BAD_TENSOR_DTYPE;

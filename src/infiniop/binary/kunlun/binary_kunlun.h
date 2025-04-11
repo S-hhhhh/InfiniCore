@@ -2,28 +2,29 @@
 #define __INFINIOP_BINARY_KUNLUN_H__
 
 #include "../../devices/kunlun/kunlun_common.h"
+#include "../../devices/kunlun/kunlun_type.h"
 #include <iostream>
 namespace op::kunlun_common {
 
 namespace binary_op {
 
-void host2device(const unsigned long long *c_shape, const long long *c_strides, const unsigned long long *a_shape, const long long *a_strides,
-                 const unsigned long long *b_shape, const long long *b_strides,
-                 unsigned long long *xpu_c_shape, long long *xpu_c_strides, unsigned long long *xpu_a_shape, long long *xpu_a_strides,
-                 unsigned long long *xpu_b_shape, long long *xpu_b_strides,
-                 unsigned long long ndim);
+void host2device(const kunlun_size_t *c_shape, const kunlun_ptrdiff_t *c_strides, const kunlun_size_t *a_shape, const kunlun_ptrdiff_t *a_strides,
+                 const kunlun_size_t *b_shape, const kunlun_ptrdiff_t *b_strides,
+                 kunlun_size_t *xpu_c_shape, kunlun_ptrdiff_t *xpu_c_strides, kunlun_size_t *xpu_a_shape, kunlun_ptrdiff_t *xpu_a_strides,
+                 kunlun_size_t *xpu_b_shape, kunlun_ptrdiff_t *xpu_b_strides,
+                 kunlun_size_t ndim);
 
 // Perform binary computation when inputs and the output can have different dtypes
 template <typename Tc, typename Ta, typename Tb, typename BinaryOp, typename... Args>
-__global__ void calculate(unsigned long long c_data_size,
-                          unsigned long long ndim,
+__global__ void calculate(kunlun_size_t c_data_size,
+                          kunlun_size_t ndim,
                           bool contiguous,
-                          bool broadcasted, Tc *c_, const Ta *a_, const Tb *b_,
-                          unsigned long long *xpu_c_shape, long long *xpu_c_strides, unsigned long long *xpu_a_shape, long long *xpu_a_strides,
-                          unsigned long long *xpu_b_shape, long long *xpu_b_strides,
+                          bool broadcasted, Tc *c, const Ta *a, const Tb *b,
+                          kunlun_size_t *xpu_c_shape, kunlun_ptrdiff_t *xpu_c_strides, kunlun_size_t *xpu_a_shape, kunlun_ptrdiff_t *xpu_a_strides,
+                          kunlun_size_t *xpu_b_shape, kunlun_ptrdiff_t *xpu_b_strides,
                           Args &&...args) {
 
-    unsigned long long data_size = c_data_size;
+    kunlun_size_t data_size = c_data_size;
     int cid = core_id();
     int ncores = core_num();
     if (cid >= ncores) {
@@ -52,15 +53,15 @@ __global__ void calculate(unsigned long long c_data_size,
         int read_len = (r < repeat ? buf_size : step);
         int start = (r < repeat ? r * task_size + thread_id * buf_size : ind_start);
         if (contiguous) {
-            GM2LM(a_ + start, a_local, read_len * sizeof(Ta));
-            GM2LM(b_ + start, b_local, read_len * sizeof(Tb));
+            GM2LM(a + start, a_local, read_len * sizeof(Ta));
+            GM2LM(b + start, b_local, read_len * sizeof(Tb));
 
             for (int i = 0; i < read_len; i++) {
                 c_local[i] = BinaryOp{}(a_local[i], b_local[i], std::forward<Args>(args)...);
             }
             mfence();
 
-            LM2GM(c_local, c_ + start, read_len * sizeof(Tc));
+            LM2GM(c_local, c + start, read_len * sizeof(Tc));
         } else {
             for (int i = 0; i < read_len; i++) {
                 int i_index = i + start;
@@ -68,12 +69,12 @@ __global__ void calculate(unsigned long long c_data_size,
                 int b_index = broadcasted ? op::kunlun_common::indexToReducedOffset(i_index, ndim, xpu_c_strides, xpu_b_strides) : op::kunlun_common::indexToOffset(i_index, ndim, xpu_b_shape, xpu_b_strides);
                 int c_index = op::kunlun_common::indexToOffset(i_index, ndim, xpu_c_shape, xpu_c_strides);
 
-                GM2LM(a_ + a_index, a_local + i, 1 * sizeof(Ta));
-                GM2LM(b_ + b_index, b_local + i, 1 * sizeof(Tb));
+                GM2LM(a + a_index, a_local + i, 1 * sizeof(Ta));
+                GM2LM(b + b_index, b_local + i, 1 * sizeof(Tb));
                 c_local[i] = BinaryOp{}(a_local[i], b_local[i], std::forward<Args>(args)...);
                 mfence();
 
-                LM2GM(c_local + i, c_ + c_index, 1 * sizeof(Tc));
+                LM2GM(c_local + i, c + c_index, 1 * sizeof(Tc));
             }
         }
     }
@@ -81,15 +82,15 @@ __global__ void calculate(unsigned long long c_data_size,
 
 // Perform binary computation when all inputs and the output share the same dtype
 template <typename Tdata, typename BinaryOp, typename... Args>
-__global__ void calculate(unsigned long long c_data_size,
-                          unsigned long long ndim,
+__global__ void calculate(kunlun_size_t c_data_size,
+                          kunlun_size_t ndim,
                           bool contiguous,
-                          bool broadcasted, Tdata *c_, const Tdata *a_, const Tdata *b_,
-                          unsigned long long *xpu_c_shape, long long *xpu_c_strides, unsigned long long *xpu_a_shape, long long *xpu_a_strides,
-                          unsigned long long *xpu_b_shape, long long *xpu_b_strides,
+                          bool broadcasted, Tdata *c, const Tdata *a, const Tdata *b,
+                          kunlun_size_t *xpu_c_shape, kunlun_ptrdiff_t *xpu_c_strides, kunlun_size_t *xpu_a_shape, kunlun_ptrdiff_t *xpu_a_strides,
+                          kunlun_size_t *xpu_b_shape, kunlun_ptrdiff_t *xpu_b_strides,
                           Args &&...args) {
 
-    unsigned long long data_size = c_data_size;
+    kunlun_size_t data_size = c_data_size;
 
     int cid = core_id();
     int ncores = core_num();
@@ -119,8 +120,8 @@ __global__ void calculate(unsigned long long c_data_size,
         int read_len = (r < repeat ? buf_size : step);
         int start = (r < repeat ? r * task_size + thread_id * buf_size : ind_start);
         if (contiguous) {
-            GM2LM(a_ + start, a_local, read_len * sizeof(Tdata));
-            GM2LM(b_ + start, b_local, read_len * sizeof(Tdata));
+            GM2LM(a + start, a_local, read_len * sizeof(Tdata));
+            GM2LM(b + start, b_local, read_len * sizeof(Tdata));
 
             for (int i = 0; i < read_len; i++) {
 
@@ -128,7 +129,7 @@ __global__ void calculate(unsigned long long c_data_size,
             }
             mfence();
 
-            LM2GM(c_local, c_ + start, read_len * sizeof(Tdata));
+            LM2GM(c_local, c + start, read_len * sizeof(Tdata));
         } else {
             for (int i = 0; i < read_len; i++) {
                 int i_index = i + start;
@@ -136,34 +137,34 @@ __global__ void calculate(unsigned long long c_data_size,
                 int b_index = broadcasted ? op::kunlun_common::indexToReducedOffset(i_index, ndim, xpu_c_strides, xpu_b_strides) : op::kunlun_common::indexToOffset(i_index, ndim, xpu_b_shape, xpu_b_strides);
                 int c_index = op::kunlun_common::indexToOffset(i_index, ndim, xpu_c_shape, xpu_c_strides);
 
-                GM2LM(a_ + a_index, a_local + i, 1 * sizeof(Tdata));
-                GM2LM(b_ + b_index, b_local + i, 1 * sizeof(Tdata));
+                GM2LM(a + a_index, a_local + i, 1 * sizeof(Tdata));
+                GM2LM(b + b_index, b_local + i, 1 * sizeof(Tdata));
                 c_local[i] = BinaryOp{}(a_local[i], b_local[i], std::forward<Args>(args)...);
                 mfence();
-                LM2GM(c_local + i, c_ + c_index, 1 * sizeof(Tdata));
+                LM2GM(c_local + i, c + c_index, 1 * sizeof(Tdata));
             }
         }
     }
 }
 template <typename Tdata, typename BinaryOp, typename... Args>
-void launch_calculate(unsigned long long c_data_size,
-                      unsigned long long ndim,
+void launch_calculate(kunlun_size_t c_data_size,
+                      kunlun_size_t ndim,
                       bool contiguous,
-                      bool broadcasted, const unsigned long long *c_shape, const long long *c_strides, const unsigned long long *a_shape, const long long *a_strides,
-                      const unsigned long long *b_shape, const long long *b_strides, void *c, const void *a, const void *b, XPUStream stream,
+                      bool broadcasted, const kunlun_size_t *c_shape, const kunlun_ptrdiff_t *c_strides, const kunlun_size_t *a_shape, const kunlun_ptrdiff_t *a_strides,
+                      const kunlun_size_t *b_shape, const kunlun_ptrdiff_t *b_strides, Tdata *c, const Tdata *a, const Tdata *b, XPUStream stream,
                       Args... args) {
 
     char *workspace;
     int ret = 0;
-    ret = xpu_malloc((void **)&workspace, ndim * (3 * sizeof(unsigned long long) + 3 * sizeof(long)));
+    ret = xpu_malloc((void **)&workspace, ndim * (3 * sizeof(kunlun_size_t) + 3 * sizeof(long)));
     assert(ret == 0);
-    char *tmp_strides = workspace + 3 * ndim * sizeof(unsigned long long);
-    unsigned long long *xpu_c_shape = (unsigned long long *)workspace;
-    unsigned long long *xpu_a_shape = xpu_c_shape + ndim;
-    unsigned long long *xpu_b_shape = xpu_a_shape + ndim;
-    long long *xpu_c_strides = (long long *)tmp_strides;
-    long long *xpu_a_strides = xpu_c_strides + ndim;
-    long long *xpu_b_strides = xpu_a_strides + ndim;
+    char *tmp_strides = workspace + 3 * ndim * sizeof(kunlun_size_t);
+    kunlun_size_t *xpu_c_shape = (kunlun_size_t *)workspace;
+    kunlun_size_t *xpu_a_shape = xpu_c_shape + ndim;
+    kunlun_size_t *xpu_b_shape = xpu_a_shape + ndim;
+    kunlun_ptrdiff_t *xpu_c_strides = (kunlun_ptrdiff_t *)tmp_strides;
+    kunlun_ptrdiff_t *xpu_a_strides = xpu_c_strides + ndim;
+    kunlun_ptrdiff_t *xpu_b_strides = xpu_a_strides + ndim;
 
     host2device(c_shape, c_strides, a_shape, a_strides,
                 b_shape, b_strides, xpu_c_shape, xpu_c_strides, xpu_a_shape, xpu_a_strides,
@@ -172,44 +173,46 @@ void launch_calculate(unsigned long long c_data_size,
     calculate<Tdata, BinaryOp><<<8, 64, stream>>>(c_data_size,
                                                   ndim,
                                                   contiguous,
-                                                  broadcasted, (Tdata *)c, (Tdata *)a, (Tdata *)b,
+                                                  broadcasted, c, a, b,
                                                   xpu_c_shape, xpu_c_strides,
                                                   xpu_a_shape, xpu_a_strides,
                                                   xpu_b_shape, xpu_b_strides,
                                                   std::forward<Args>(args)...);
+    xpu_wait();
     xpu_free(workspace);
 }
 
 template <typename Tc, typename Ta, typename Tb, typename BinaryOp, typename... Args>
-void launch_calculate(unsigned long long c_data_size,
-                      unsigned long long ndim,
+void launch_calculate(kunlun_size_t c_data_size,
+                      kunlun_size_t ndim,
                       bool contiguous,
-                      bool broadcasted, const unsigned long long *c_shape, const long long *c_strides, const unsigned long long *a_shape, const long long *a_strides,
-                      const unsigned long long *b_shape, const long long *b_strides, void *c, const void *a, const void *b, XPUStream stream,
+                      bool broadcasted, const kunlun_size_t *c_shape, const kunlun_ptrdiff_t *c_strides, const kunlun_size_t *a_shape, const kunlun_ptrdiff_t *a_strides,
+                      const kunlun_size_t *b_shape, const kunlun_ptrdiff_t *b_strides, Tc *c, const Ta *a, const Tb *b, XPUStream stream,
                       Args... args) {
 
     char *workspace;
     int ret = 0;
-    ret = xpu_malloc((void **)&workspace, ndim * 3 * (sizeof(unsigned long long) + sizeof(long long)));
+    ret = xpu_malloc((void **)&workspace, ndim * 3 * (sizeof(kunlun_size_t) + sizeof(kunlun_ptrdiff_t)));
     assert(ret == 0);
-    char *tmp_strides = workspace + 3 * ndim * sizeof(unsigned long long);
-    unsigned long long *xpu_c_shape = (unsigned long long *)workspace;
-    unsigned long long *xpu_a_shape = xpu_c_shape + ndim;
-    unsigned long long *xpu_b_shape = xpu_a_shape + ndim;
-    long long *xpu_c_strides = (long long *)tmp_strides;
-    long long *xpu_a_strides = xpu_c_strides + ndim;
-    long long *xpu_b_strides = xpu_a_strides + ndim;
+    char *tmp_strides = workspace + 3 * ndim * sizeof(kunlun_size_t);
+    kunlun_size_t *xpu_c_shape = (kunlun_size_t *)workspace;
+    kunlun_size_t *xpu_a_shape = xpu_c_shape + ndim;
+    kunlun_size_t *xpu_b_shape = xpu_a_shape + ndim;
+    kunlun_ptrdiff_t *xpu_c_strides = (kunlun_ptrdiff_t *)tmp_strides;
+    kunlun_ptrdiff_t *xpu_a_strides = xpu_c_strides + ndim;
+    kunlun_ptrdiff_t *xpu_b_strides = xpu_a_strides + ndim;
     host2device(c_shape, c_strides, a_shape, a_strides,
                 b_shape, b_strides, xpu_c_shape, xpu_c_strides, xpu_a_shape, xpu_a_strides,
                 xpu_b_shape, xpu_b_strides, ndim);
     calculate<Tc, Ta, Tb, BinaryOp><<<8, 64, stream>>>(c_data_size,
                                                        ndim,
                                                        contiguous,
-                                                       broadcasted, (Tc *)c, (Ta *)a, (Tb *)b,
+                                                       broadcasted, c, a, b,
                                                        xpu_c_shape, xpu_c_strides,
                                                        xpu_a_shape, xpu_a_strides,
                                                        xpu_b_shape, xpu_b_strides,
                                                        std::forward<Args>(args)...);
+    xpu_wait();
     xpu_free(workspace);
 }
 

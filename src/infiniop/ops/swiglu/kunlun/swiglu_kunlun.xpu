@@ -17,11 +17,11 @@ public:
     }
 };
 
-void swiglu_f32(unsigned long long c_data_size,
-                unsigned long long ndim,
+void swiglu_f32(kunlun_size_t c_data_size,
+                kunlun_size_t ndim,
                 bool contiguous,
-                bool broadcasted, const unsigned long long *c_shape, const long long *c_strides, const unsigned long long *a_shape, const long long *a_strides,
-                const unsigned long long *b_shape, const long long *b_strides, void *c, const void *a, const void *b, XPUStream stream) {
+                bool broadcasted, const kunlun_size_t *c_shape, const kunlun_ptrdiff_t *c_strides, const kunlun_size_t *a_shape, const kunlun_ptrdiff_t *a_strides,
+                const kunlun_size_t *b_shape, const kunlun_ptrdiff_t *b_strides, float *c, const float *a, const float *b, XPUStream stream) {
     
     op::kunlun_common::binary_op::launch_calculate<float, SwiGLUOp>(c_data_size,
                       ndim,
