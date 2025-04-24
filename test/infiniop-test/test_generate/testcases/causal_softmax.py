@@ -47,12 +47,12 @@ class CausalSoftmaxTestCase(InfiniopTestCase):
         test_writer.add_tensor(
             test_writer.gguf_key("x"),
             self.x,
-            raw_dtype = np_dtype_to_ggml(self.x.dtype),
+            raw_dtype=np_dtype_to_ggml(self.x.dtype),
         )
         test_writer.add_tensor(
             test_writer.gguf_key("y"),
             self.y,
-            raw_dtype = np_dtype_to_ggml(self.y.dtype),
+            raw_dtype=np_dtype_to_ggml(self.y.dtype),
         )
         ans = causal_softmax(
             self.x.astype(np.float64),
@@ -61,8 +61,9 @@ class CausalSoftmaxTestCase(InfiniopTestCase):
             test_writer.gguf_key("ans"), ans, raw_dtype=gguf.GGMLQuantizationType.F64
         )
 
+
 # ==============================================================================
-#  Configuration 
+#  Configuration
 # ==============================================================================
 # These are not meant to be imported from other modules
 _TEST_CASES_ = [
@@ -77,9 +78,11 @@ _TEST_CASES_ = [
 
 _TENSOR_DTYPES_ = [np.float16, np.float32]
 
+
 class Inplace(Enum):
     OUT_OF_PLACE = auto()
     INPLACE_X = auto()
+
 
 _INPLACE = [
     Inplace.OUT_OF_PLACE,
@@ -111,70 +114,4 @@ if __name__ == "__main__":
     test_writer.add_tests(test_cases)
     test_writer.save()
 
-        # test_cases = [
-        # CausalSoftmaxTestCase(
-        #     random_tensor((3, 3), np.float32),
-        #     None,
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 512), np.float32),
-        #     gguf_strides(1024, 1),
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 5, 5), np.float32),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 20, 512), np.float32),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 20, 512), np.float32),
-        #     gguf_strides(20480, 512, 1),
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((9, 10, 1024), np.float32),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 120), np.float32),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((5, 9, 200), np.float32),
-        #     gguf_strides(1800, 200, 1),
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((3, 3), np.float16),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 512), np.float16),
-        #     gguf_strides(1024, 1),
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 5, 5), np.float16),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 20, 512), np.float16),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 20, 512), np.float16),
-        #     gguf_strides(20480, 512, 1),
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((9, 10, 1024), np.float16),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((32, 120), np.float16),
-        #     None,
-        # ),
-        # CausalSoftmaxTestCase(
-        #     random_tensor((5, 9, 200), np.float16),
-        #     gguf_strides(1800, 200, 1),
-        # ),
-    # ]
+

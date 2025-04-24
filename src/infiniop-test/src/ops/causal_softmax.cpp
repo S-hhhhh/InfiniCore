@@ -18,7 +18,7 @@ std::shared_ptr<Test> Test::build(
     auto test = std::shared_ptr<Test>(new Test(rtol, atol));
     test->_attributes = new Attributes();
     if (tensors.find("x") == tensors.end()
-        || tensors.find("y") ==tensors.end()
+        || tensors.find("y") == tensors.end()
         || tensors.find("ans") == tensors.end()) {
         throw std::runtime_error("Invalid Test");
     }
