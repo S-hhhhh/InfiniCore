@@ -264,6 +264,70 @@ void launchElementwiseKernelWrapper(
 }
 
 /**
+ * @brief Determines optimal kernel launch configuration based on input size and hardware.
+ *
+ * @param output_size Total number of output elements.
+ * @return cnrtDim3_t Optimal kernel launch dimensions.
+ */
+inline cnrtDim3_t getOptimalLaunchConfig() {
+    cnrtDim3_t dim;
+
+    // Get hardware information
+    int cluster_num, core_num;
+    cnrtDeviceGetAttribute(&cluster_num, cnrtAttrClusterCount, 0);
+    cnrtDeviceGetAttribute(&core_num, cnrtAttrMcorePerCluster, 0);
+
+    dim.x = core_num;
+    dim.y = cluster_num;
+    dim.z = 1;
+
+    return dim;
+}
+
+/**
+ * @brief Intermediate layer that determines optimal launch configuration before calling elementwiseKernel.
+ *
+ * @tparam N        Number of input tensors.
+ * @tparam Op       Operator functor type.
+ * @tparam Tdata    Data type for inputs and output.
+ * @tparam Args     Additional arguments for operator.
+ */
+template <size_t N, typename Op, typename Tdata, typename... Args>
+void launchElementwiseKernelWrapper(
+    size_t output_size,
+    size_t ndim,
+    bool output_contiguous,
+    const bool *input_contiguous,
+    const bool *input_broadcasted,
+    const size_t *output_shape,
+    const size_t *input_shapes,
+    const ptrdiff_t *output_strides,
+    const ptrdiff_t *input_strides,
+    Tdata *output,
+    const void *const *inputs,
+    cnrtQueue_t queue,
+    Args... args) {
+
+    // Determine optimal launch configuration
+    cnrtDim3_t dim = getOptimalLaunchConfig();
+
+    // Choose kernel type based on problem characteristics
+    cnrtFunctionType_t func_type = CNRT_FUNC_TYPE_BLOCK;
+    if (output_size > 1024 * 1024 && output_contiguous) {
+        // For large contiguous operations, use UNION type
+        func_type = CNRT_FUNC_TYPE_UNION1;
+    }
+
+    // Launch the kernel with optimal configuration
+    elementwiseKernel<N, Op, Tdata><<<dim, func_type, queue>>>(
+        output_size, ndim, output_contiguous,
+        input_contiguous, input_broadcasted,
+        output_shape, input_shapes,
+        output_strides, input_strides,
+        output, inputs, args...);
+}
+
+/**
  * @brief Macro for implementing elementwise kernel launch.
  *
  * @param OpName Name of the operation.
