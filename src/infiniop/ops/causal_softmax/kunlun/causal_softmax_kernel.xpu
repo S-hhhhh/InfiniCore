@@ -1,10 +1,11 @@
 #ifndef __CAUSAL_SOFTMAX_KERNEL_XPU__
 #define __CAUSAL_SOFTMAX_KERNEL_XPU__
 
-#include "../../../devices/kunlun/kunlun_common.h"
+#include "../../../devices/kunlun/kunlun_kernel_common.h"
 #include "../../../reduce/kunlun/reduce_kunlun.h"
+#include <cmath>
 
-static __device__ void elementwiseMulScaler(__local__ float *x, __local__ float *y, float s, int len) {
+static __device__ void elementwiseMulScalerF32(__local__ float *x, __local__ float *y, float s, int len) {
     __local__ float acc_buf[16];
     int remain = len % 16;
     int offset_last = len - remain;
@@ -49,7 +50,7 @@ __global__ void causalSoftmaxKernelF32(float *y, int y_stride_m,
 
     while (m_start < m_end) {
         for (int i = cid; i < m_end - m_start; i += ncores) {
-            sm_max[i] = -INF;
+            sm_max[i] = -INFINITY;
         }
         mfence();
         sync_cluster();
@@ -135,7 +136,7 @@ __global__ void causalSoftmaxKernelF32(float *y, int y_stride_m,
 
             float ss = SM2REG_atomic(sm_max + m_ - m_start);
             float rss = 1.0f / ss;
-            elementwiseMulScaler(y_local, x_local, rss, nn);
+            elementwiseMulScalerF32(y_local, x_local, rss, nn);
 
             auto y_ptr = y + m_ * y_stride_m + n_start;
             LM2GM(x_local, y_ptr, nn * sizeof(float));

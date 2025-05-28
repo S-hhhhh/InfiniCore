@@ -2,6 +2,7 @@
 #define __INFINIOP_REDUCE_KUNLUN_H__
 
 #include "../../devices/kunlun/kunlun_kernel_common.h"
+#include <cmath>
 
 namespace op::common_kunlun::reduce_op {
 
@@ -80,7 +81,7 @@ inline __device__ float sumF32(float *data_ptr, int count) {
 inline __device__ float maxF32(float *data_ptr, int count) {
     int remain = count % 16;
     int offset_last = count - remain;
-    float res = -INF;
+    float res = -INFINITY;
     for (int i = offset_last; i < count; i++) {
         res = fmax(res, *(data_ptr + i));
     }
