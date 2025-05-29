@@ -37,7 +37,7 @@ infiniStatus_t calculateRoPE(const RoPEInfo &info,
                              const Tindex *pos_ids,
                              const Tdata *sin_table,
                              const Tdata *cos_table) {
-#pragma omp parallel for
+#pragma omp parallel for collapse(2)
     for (ptrdiff_t h = 0; h < ptrdiff_t(info.nhead); h++) {
         for (size_t tok = 0; tok < info.seqlen; tok++) {
             size_t x_offset = tok * info.x_stride_seqlen + h * info.x_stride_nhead;
