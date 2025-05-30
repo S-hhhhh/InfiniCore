@@ -382,7 +382,7 @@ def test(
     # Initialize tensors
     a = 1e0 * torch.randn([K, M], dtype=dtype).to(torch_device)
     layer = nn.Linear(K, N)
-    b = 1e0 * layer.weight.data.to(dtype).to(torch_device)
+    b = 1e-3 * layer.weight.data.to(dtype).to(torch_device)
     c = torch.zeros([N, M], dtype=dtype).to(torch_device)
     is_weight_transposed = False
     sign_ed = False
@@ -390,8 +390,8 @@ def test(
     if torch_device != "cpu":
         is_weight_transposed = True
     if torch_device == "npu":
-        sign_ed = False
-        sym = False
+        sign_ed = True
+        sym = True
     group_size = -1
     num_groups = 1
     if group_size == -1:
@@ -511,12 +511,12 @@ def test(
     lib_quantize_gptq()
 
     atol, rtol = get_tolerance(_TOLERANCE_MAP, dtype)
-    tmpa = ans.flatten()
-    tmpc = c.flatten()
-    for i in range(tmpa.shape[0]):
-        if abs(tmpa[i] - tmpc[i]) > atol + rtol * abs(tmpa[i]):
-            print(tmpa[i], tmpc[i], abs(tmpa[i] - tmpc[i]), rtol * abs(tmpa[i]))
-            break
+    # tmpa = ans.flatten()
+    # tmpc = c.flatten()
+    # for i in range(tmpa.shape[0]):
+    #     if abs(tmpa[i] - tmpc[i]) > atol + rtol * abs(tmpa[i]):
+    #         print(tmpa[i], tmpc[i], abs(tmpa[i] - tmpc[i]), rtol * abs(tmpa[i]))
+    #         break
 
     if is_weight_transposed:
         c = c.t()

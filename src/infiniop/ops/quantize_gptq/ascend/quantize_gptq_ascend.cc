@@ -61,14 +61,14 @@ infiniStatus_t Descriptor::create(
     std::vector<int64_t> w_shape = {static_cast<int64_t>(info.k), static_cast<int64_t>(info.n)};
     std::vector<int64_t> w_strides = {static_cast<int64_t>(info.n), static_cast<int64_t>(1)};
     w_ascend_desc = new aclnnTensorDescriptor(aclDataType::ACL_INT4, w_shape, w_strides);
-    aclFormat weightFormat = aclFormat::ACL_FORMAT_FRACTAL_NZ;
-    w_ascend_desc->format = weightFormat;
-    std::vector<int64_t> nzShape = {static_cast<int64_t>(info.k / 64), static_cast<int64_t>(info.n / 16), 16, 64};
-    w_ascend_desc->storageNdim = 2;
-    w_ascend_desc->storageShape = nzShape;
+    // aclFormat weightFormat = aclFormat::ACL_FORMAT_FRACTAL_NZ;
+    // w_ascend_desc->format = weightFormat;
+    // std::vector<int64_t> nzShape = {static_cast<int64_t>(info.k / 64), static_cast<int64_t>(info.n / 16), 16, 64};
+    // w_ascend_desc->storageNdim = 2;
+    // w_ascend_desc->storageShape = nzShape;
 
-    aclInitTensor(nullptr, w_shape.data(), w_shape.size(), aclDataType::ACL_INT4, w_strides.data(), 0,
-                  weightFormat, nzShape.data(), nzShape.size(), nullptr);
+    // aclInitTensor(nullptr, w_shape.data(), w_shape.size(), aclDataType::ACL_INT4, w_strides.data(), 0,
+    //               weightFormat, nzShape.data(), nzShape.size(), nullptr);
 
     std::vector<int64_t> s_shape = {static_cast<int64_t>(info.num_groups), static_cast<int64_t>(info.n)};
     std::vector<int64_t> s_strides = {static_cast<int64_t>(info.n), static_cast<int64_t>(1)};
