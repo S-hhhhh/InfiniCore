@@ -6,4 +6,3 @@
 DESCRIPTOR(ascend)
 
 #endif // __QUANTIZE_GPTQ_ASCEND_H__
-
