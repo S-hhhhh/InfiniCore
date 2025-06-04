@@ -8,6 +8,10 @@
 DECLARE_INFINIOP_TEST(gemm)
 DECLARE_INFINIOP_TEST(random_sample)
 DECLARE_INFINIOP_TEST(causal_softmax)
+DECLARE_INFINIOP_TEST(mul)
+DECLARE_INFINIOP_TEST(clip)
+DECLARE_INFINIOP_TEST(swiglu)
+DECLARE_INFINIOP_TEST(add)
 
 #define REGISTER_INFINIOP_TEST(name)                      \
     {                                                     \
@@ -16,17 +20,25 @@ DECLARE_INFINIOP_TEST(causal_softmax)
             infiniop_test::name::Test::build,             \
             infiniop_test::name::Test::attribute_names(), \
             infiniop_test::name::Test::tensor_names(),    \
+            infiniop_test::name::Test::output_names(),    \
         }},
 
 /*
  * Register all the tests here
  */
-#define TEST_BUILDER_MAPPINGS                  \
-    {                                          \
-        REGISTER_INFINIOP_TEST(gemm)           \
-        REGISTER_INFINIOP_TEST(random_sample)  \
-        REGISTER_INFINIOP_TEST(causal_softmax) \
-    }
+#define TEST_BUILDER_MAPPINGS                     \
+    {                                             \
+        REGISTER_INFINIOP_TEST(gemm)              \
+        REGISTER_INFINIOP_TEST(random_sample)     \
+        REGISTER_INFINIOP_TEST(causal_softmax)    \
+        #define TEST_BUILDER_MAPPINGS {           \
+            REGISTER_INFINIOP_TEST(gemm)          \
+            REGISTER_INFINIOP_TEST(random_sample) \
+            REGISTER_INFINIOP_TEST(add)           \
+            REGISTER_INFINIOP_TEST(mul)           \
+            REGISTER_INFINIOP_TEST(clip)          \
+            REGISTER_INFINIOP_TEST(swiglu)        \
+        }
 
 namespace infiniop_test {
 
