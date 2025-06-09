@@ -25,10 +25,14 @@ def run_tests(test_names, device_type):
             print(f"[ FAIL ] GGUF generation failed for {test}")
             failed.append(test)
             continue
-
+        print("Files in build/linux/x86_64/release:")
+        print(os.listdir(os.path.join(PROJECT_DIR, "build/linux/x86_64/release")))
+    
         # C++ 测试阶段
         exe = os.path.join(PROJECT_DIR, "build/linux/x86_64/release/infiniop-test")
         gguf_path = os.path.join(base_dir, f"{test}.gguf")
+        print(f"exe: {exe}, exists: {os.path.isfile(exe)}")
+        print(f"gguf_path: {gguf_path}, exists: {os.path.isfile(gguf_path)}")
         cmd_cpp = f"{exe} {gguf_path} {device_type} --warmup 20 --run 1000"
         res = subprocess.run(
             cmd_cpp,
