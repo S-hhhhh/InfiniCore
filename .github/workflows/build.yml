@@ -37,6 +37,10 @@ jobs:
       run: |
         pip install numpy
         pip install torch
+        pip install gguf
 
     - name: Python Test
       run: python scripts/python_test.py --cpu
+
+    - name: C++ Test
+      run: python scripts/gguf_test.py --cpu
