@@ -1,0 +1,216 @@
+#include "../../../devices/bang/bang_handle.h"
+#include "../../../devices/bang/common_bang.h"
+#include "../../../tensor.h"
+#include "rearrange_bang.h"
+
+namespace op::rearrange::bang {
+
+struct Descriptor::Opaque {
+    infiniDtype_t dtype;
+    uint64_t ndim;
+    uint64_t dim_last, dim_2nd_last, dim_3rd_last;
+    int64_t dst_stride_2nd_last, dst_stride_3rd_last;
+    int64_t src_stride_2nd_last, src_stride_3rd_last;
+};
+
+Descriptor::~Descriptor() {
+    delete _opaque;
+}
+
+const int SRC_MAX_SIZE = 1024 * 1024 * 128; // 128MB maximum transfer size
+
+__mlu_global__ void rearrange(
+    char *dst,
+    char const *src,
+    uint64_t ndim,
+    uint64_t dim_last, uint64_t dim_2nd_last, uint64_t dim_3rd_last,
+    int64_t dst_stride_2nd_last, int64_t dst_stride_3rd_last,
+    int64_t src_stride_2nd_last, int64_t src_stride_3rd_last,
+    int dtSize) {
+
+    const int maxNum = SRC_MAX_SIZE / dtSize;
+
+    int num_of_layers = dim_3rd_last * dim_2nd_last;
+    int remainT = num_of_layers % taskDim;
+    int stepEasy = (num_of_layers - remainT) / taskDim;
+    int stepHard = stepEasy + 1;
+    int step = (taskId < remainT ? stepHard : stepEasy);
+    int indStart = (taskId < remainT ? taskId * stepHard : remainT * stepHard + (taskId - remainT) * stepEasy);
+
+    if (dim_last < maxNum) {
+        for (int i = indStart; i < indStart + step; ++i) {
+            int tidS = 0;
+            int tidD = 0;
+            int indi = i;
+
+            tidS += (indi % dim_2nd_last) * src_stride_2nd_last;
+            tidD += (indi % dim_2nd_last) * dst_stride_2nd_last;
+            indi /= dim_2nd_last;
+
+            tidS += (indi % dim_3rd_last) * src_stride_3rd_last;
+            tidD += (indi % dim_3rd_last) * dst_stride_3rd_last;
+            indi /= dim_3rd_last;
+
+            __memcpy(dst + tidD * dtSize, src + tidS * dtSize, dim_last * dtSize, GDRAM2GDRAM);
+        }
+    } else {
+        int remain = dim_last % maxNum;
+        int repeat = (dim_last - remain) / maxNum;
+        for (int i = indStart; i < indStart + step; ++i) {
+            int tidS = 0;
+            int tidD = 0;
+            int indi = i;
+
+            tidS += (indi % dim_2nd_last) * src_stride_2nd_last;
+            tidD += (indi % dim_2nd_last) * dst_stride_2nd_last;
+            indi /= dim_2nd_last;
+
+            tidS += (indi % dim_3rd_last) * src_stride_3rd_last;
+            tidD += (indi % dim_3rd_last) * dst_stride_3rd_last;
+            indi /= dim_3rd_last;
+
+            for (int index = 0; index < repeat; index++) {
+                __memcpy(dst + (tidD + index * maxNum) * dtSize,
+                         src + (tidS + index * maxNum) * dtSize,
+                         maxNum * dtSize,
+                         GDRAM2GDRAM);
+            }
+            if (remain) {
+                __memcpy(dst + (tidD + repeat * maxNum) * dtSize,
+                         src + (tidS + repeat * maxNum) * dtSize,
+                         remain * dtSize,
+                         GDRAM2GDRAM);
+            }
+        }
+    }
+}
+
+void rearrangeUnion(cnrtQueue_t queue, void *destination, void const *source,
+                    uint64_t ndim,
+                    uint64_t dim_last, uint64_t dim_2nd_last, uint64_t dim_3rd_last,
+                    int64_t dst_stride_2nd_last, int64_t dst_stride_3rd_last,
+                    int64_t src_stride_2nd_last, int64_t src_stride_3rd_last,
+                    int dtSize) {
+
+    auto dst = reinterpret_cast<char *>(destination);
+    auto src = reinterpret_cast<const char *>(source);
+
+    cnrtDim3_t k_dim;
+    cnrtFunctionType_t k_type;
+
+    k_dim.x = 4; // Using 4 clusters
+    k_dim.y = 1;
+    k_dim.z = 1;
+    k_type = CNRT_FUNC_TYPE_UNION1;
+
+    rearrange<<<k_dim, k_type, queue>>>(dst, src, ndim,
+                                        dim_last, dim_2nd_last, dim_3rd_last,
+                                        dst_stride_2nd_last, dst_stride_3rd_last,
+                                        src_stride_2nd_last, src_stride_3rd_last,
+                                        dtSize);
+
+    cnrtQueueSync(queue);
+}
+
+infiniStatus_t Descriptor::create(
+    infiniopHandle_t handle_,
+    Descriptor **desc_ptr,
+    infiniopTensorDescriptor_t y_desc,
+    infiniopTensorDescriptor_t x_desc) {
+
+    auto handle = reinterpret_cast<device::bang::Handle *>(handle_);
+    auto dtype = y_desc->dtype();
+    auto ndim = y_desc->ndim();
+
+    // Validate input and output tensors
+    auto y_shape = y_desc->shape();
+    auto x_shape = x_desc->shape();
+    CHECK_OR_RETURN(x_desc->dtype() == dtype, INFINI_STATUS_BAD_TENSOR_DTYPE);
+    CHECK_OR_RETURN(x_desc->ndim() == ndim, INFINI_STATUS_BAD_TENSOR_SHAPE);
+    CHECK_SAME_SHAPE(x_shape, y_shape);
+
+    // Get strides and validate last dimension stride
+    auto dst_strides = y_desc->strides();
+    auto src_strides = x_desc->strides();
+    CHECK_OR_RETURN(dst_strides[ndim - 1] == 1 && src_strides[ndim - 1] == 1,
+                    INFINI_STATUS_BAD_TENSOR_STRIDES);
+
+    // Create descriptor based on number of dimensions
+    auto opaque = new Opaque{
+        dtype,
+        ndim,
+        0, 0, 0,
+        0, 0,
+        0, 0};
+
+    switch (ndim) {
+    case 1:
+        opaque->dim_last = y_shape[0];
+        opaque->dim_2nd_last = 1;
+        opaque->dim_3rd_last = 1;
+        break;
+    case 2:
+        opaque->dim_last = y_shape[1];
+        opaque->dim_2nd_last = y_shape[0];
+        opaque->dim_3rd_last = 1;
+        opaque->dst_stride_2nd_last = dst_strides[0];
+        opaque->src_stride_2nd_last = src_strides[0];
+        break;
+    case 3:
+        opaque->dim_last = y_shape[2];
+        opaque->dim_2nd_last = y_shape[1];
+        opaque->dim_3rd_last = y_shape[0];
+        opaque->dst_stride_2nd_last = dst_strides[1];
+        opaque->dst_stride_3rd_last = dst_strides[0];
+        opaque->src_stride_2nd_last = src_strides[1];
+        opaque->src_stride_3rd_last = src_strides[0];
+        break;
+    default:
+        delete opaque;
+        return INFINI_STATUS_BAD_TENSOR_STRIDES;
+    }
+
+    // Create a valid RearrangeMeta using the create method
+    auto meta_result = utils::RearrangeMeta::create(
+        y_shape.data(),
+        dst_strides.data(),
+        src_strides.data(),
+        ndim,
+        infiniSizeOf(dtype));
+
+    if (!meta_result) {
+        delete opaque;
+        return INFINI_STATUS_BAD_TENSOR_STRIDES;
+    }
+
+    *desc_ptr = new Descriptor(
+        meta_result.take(),
+        opaque,
+        handle->device,
+        handle->device_id);
+
+    return INFINI_STATUS_SUCCESS;
+}
+
+infiniStatus_t Descriptor::calculate(
+    void *y,
+    const void *x,
+    void *stream) const {
+
+    if (cnrtSetDevice(device_id) != cnrtSuccess) { // Changed to device_id from base class
+        return INFINI_STATUS_DEVICE_TYPE_NOT_SUPPORTED;
+    }
+
+    cnrtQueue_t queue = reinterpret_cast<cnrtQueue_t>(stream);
+
+    rearrangeUnion(queue, y, x,
+                   _opaque->ndim,
+                   _opaque->dim_last, _opaque->dim_2nd_last, _opaque->dim_3rd_last,
+                   _opaque->dst_stride_2nd_last, _opaque->dst_stride_3rd_last,
+                   _opaque->src_stride_2nd_last, _opaque->src_stride_3rd_last,
+                   infiniSizeOf(_opaque->dtype));
+
+    return INFINI_STATUS_SUCCESS;
+}
+
+} // namespace op::rearrange::bang

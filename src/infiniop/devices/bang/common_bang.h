@@ -6,6 +6,7 @@
 #include "../pool.h"
 #include "bang_handle.h"
 #include "cnnl.h"
+#include "cnnl_extra.h"
 #include "cnrt.h"
 #include <functional>
 
