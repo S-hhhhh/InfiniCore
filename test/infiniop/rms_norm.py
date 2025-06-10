@@ -25,6 +25,16 @@ from libinfiniop import (
 # These are not meant to be imported from other modules
 _TEST_CASES = [
     # y_shape, x_shape, w_shape, y_stride, x_stride, w_dtype
+    ((1, 1024), (1, 1024), (1024,), None, None, torch.float32),
+    ((1, 1000), (1, 1000), (1000,), None, None, torch.float16),
+    ((1, 777), (1, 777), (777,), None, None, torch.float32),
+    ((1, 777), (1, 777), (777,), None, None, torch.float16),
+    ((17, 777), (17, 777), (777,), None, None, torch.float32),
+    ((17, 777), (17, 777), (777,), None, None, torch.float16),
+    ((1, 32), (1, 32), (32,), None, None, torch.float32),
+    ((1, 32), (1, 32), (32,), None, None, torch.float16),
+    ((16, 16), (16, 16), (16,), None, None, torch.float32),
+    ((16, 16), (16, 16), (16,), None, None, torch.float16),
     ((1, 4), (1, 4), (4,), None, None, torch.float32),
     ((16, 2048), (16, 2048), (2048,), None, None, torch.float32),
     ((16, 2048), (16, 2048), (2048,), None, None, torch.float16),
@@ -72,7 +82,7 @@ def test(
     x_stride,
     w_dtype=torch.float16,
     dtype=torch.float16,
-    sync=None
+    sync=None,
 ):
     print(
         f"Testing RMS_Norm on {torch_device} with y_shape:{y_shape} x_shape:{x_shape} w_shape:{w_shape}"
@@ -91,10 +101,10 @@ def test(
         for tensor, stride in zip([x, y], [x_stride, y_stride])
     ]
     x_tensor, y_tensor, w_tensor = [to_tensor(tensor, lib) for tensor in [x, y, w]]
-    
+
     if sync is not None:
         sync()
-    
+
     descriptor = infiniopRMSNormDescriptor_t()
 
     check_error(
