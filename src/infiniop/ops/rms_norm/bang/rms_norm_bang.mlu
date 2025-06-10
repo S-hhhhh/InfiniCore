@@ -105,7 +105,7 @@ void rmsnormUnion(void *workspace, int core_per_cluster, int cluster_count, cnrt
     } else {
         dim_s = pow(2, floor(mi) + 1);
     }
-    constexpr int reduce_num = 128 / sizeof(float); // Cambricon __bang_reduce_sum can only reduce 128 bytes at a time
+    constexpr int reduce_num = 102400 / sizeof(float);
     if (dim_s < reduce_num) {
         dim_s = reduce_num; // Force dim_s >= reduce_num
     }
