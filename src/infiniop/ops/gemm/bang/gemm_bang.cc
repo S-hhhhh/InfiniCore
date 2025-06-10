@@ -15,8 +15,8 @@ struct Descriptor::Opaque {
         cnnlDestroyTensorDescriptor(a);
         cnnlDestroyTensorDescriptor(b);
         cnnlDestroyTensorDescriptor(c);
-        cnnlMatMulDescDestroy(op);
-        cnnlMatMulAlgoDestroy(algo);
+        cnnlDestroyMatMulDescriptor(op);
+        cnnlDestroyMatMulAlgo(algo);
         cnnlDestroyMatMulHeuristicResult(algoResult);
     }
 };
@@ -87,8 +87,8 @@ infiniStatus_t Descriptor::create(
     cnnlMatMulDescriptor_t op;
     cnnlMatMulAlgo_t algo;
     cnnlMatMulHeuristicResult_t algoResult;
-    CHECK_BANG(cnnlMatMulDescCreate(&op));
-    CHECK_BANG(cnnlMatMulAlgoCreate(&algo));
+    CHECK_BANG(cnnlCreateMatMulDescriptor(&op));
+    CHECK_BANG(cnnlCreateMatMulAlgo(&algo));
     CHECK_BANG(cnnlCreateMatMulHeuristicResult(&algoResult));
     int32_t use_stride = true;
     CHECK_BANG(cnnlSetMatMulDescAttr(
@@ -103,7 +103,7 @@ infiniStatus_t Descriptor::create(
             (cnrtQueue_t) nullptr,
             [&](cnnlHandle_t _handle) {
                 CHECK_BANG(
-                    cnnlGetBatchMatMulAlgoHeuristic(
+                    cnnlGetBatchMatMulExAlgoHeuristic(
                         _handle,
                         op, a, b, c,
                         NULL, 1, &algoResult, &count));
@@ -111,7 +111,7 @@ infiniStatus_t Descriptor::create(
             }));
 
     size_t workspace_size;
-    CHECK_BANG(cnnlGetBatchMatMulHeuristicResult(algoResult, algo, &workspace_size));
+    CHECK_BANG(cnnlGetBatchMatMulExHeuristicResult(algoResult, algo, &workspace_size));
 
     *desc_ptr = new Descriptor(
         dtype, info, workspace_size,
@@ -137,7 +137,7 @@ infiniStatus_t Descriptor::calculate(
     CHECK_STATUS(_opaque->internal->useCnnl(
         (cnrtQueue_t)stream,
         [&](cnnlHandle_t handle) {
-            CHECK_BANG(cnnlBatchMatMulBCast_v2(
+            CHECK_BANG(cnnlBatchMatMulEx(
                 handle,
                 _opaque->op,
                 _opaque->algo,
