@@ -1,6 +1,6 @@
-#include "rms_norm_cnnl.h"
 #include "../../../devices/bang/bang_handle.h"
 #include "../../../devices/bang/common_bang.h"
+#include "rms_norm_cnnl.h"
 
 namespace op::rms_norm::cnnl {
 
@@ -83,16 +83,24 @@ infiniStatus_t Descriptor::calculate(void *workspace, size_t workspace_size,
     CHECK_STATUS(_opaque->internal->useCnnl(
         reinterpret_cast<cnrtQueue_t>(stream),
         [&](cnnlHandle_t handle) {
-            CHECK_BANG(cnnlFuseNorm(handle,
-                                    _opaque->opDesc,
-                                    _opaque->xDesc, x,
-                                    _opaque->wDesc, w,
-                                    nullptr, nullptr,
-                                    nullptr, nullptr,
-                                    nullptr, nullptr,
-                                    workspace, workspace_size,
-                                    _opaque->yDesc, y,
-                                    nullptr, nullptr));
+            CHECK_BANG(cnnlFuseNorm_v4(handle,
+                                       _opaque->xDesc, x,        // Input tensor
+                                       nullptr, nullptr,         // Input scale (unused)
+                                       _opaque->wDesc, w,        // Norm scale (gamma)
+                                       nullptr, nullptr,         // Norm bias (beta, unused)
+                                       nullptr, nullptr,         // Residual input (unused)
+                                       nullptr, nullptr,         // Bias (unused)
+                                       1e-5f,                    // Epsilon
+                                       CNNL_QUANTIZE_NONE,       // No quantization
+                                       false,                    // Don't store output before norm
+                                       false,                    // Don't store output after norm
+                                       CNNL_TRANSFORMER_RMSNORM, // Norm type (RMSNorm)
+                                       CNNL_DTYPE_FLOAT,         // Compute precision (float)
+                                       workspace, workspace_size,
+                                       _opaque->yDesc, y,  // Output
+                                       nullptr, nullptr,   // Output before norm (unused)
+                                       nullptr, nullptr,   // Output quant scale (unused)
+                                       nullptr, nullptr)); // Output after norm (unused)
             return INFINI_STATUS_SUCCESS;
         }));
     cnrtQueueSync(reinterpret_cast<cnrtQueue_t>(stream));
