@@ -50,7 +50,7 @@ __mlu_global__ void rmsnorm(T *output, const T *input, const Tw *weight,
         }
 
         // Compute sum of squares
-        __bang_write_zero(reduction_result, reduce_buffer_size);
+        __bang_write_value(reduction_result, reduce_buffer_size, 0);
         float sum_squared = op::common_bang::reduce_op::sumSquaredBatched<T>(
             input + input_offset, input_cache, reduction_result, vector_size, max_batch_size);
         // Compute normalization factor
@@ -96,7 +96,7 @@ void rmsnormUnion(void *workspace, int core_per_cluster, int cluster_count, cnrt
     kernel_dim.x = core_per_cluster;
     kernel_dim.y = cluster_count;
     kernel_dim.z = 1;
-    kernel_type = CNRT_FUNC_TYPE_UNION1; // Can choose others, but must adapt kernel_type accordingly
+    kernel_type = cnrtFuncTypeUnion1; // Can choose others, but must adapt kernel_type accordingly
     int dimsize = shape[ndim - 1];       // Length of operation dimension
     int dim_s;                           // dim_s is the next power of 2 greater than dimsize
     float mi = log2(dimsize);
