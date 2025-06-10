@@ -65,3 +65,5 @@ Name: test.0.ans, NDims: 2, Shape: [6, 4], DataType: F64, DataOffset: 320
 - `Meta` 中必须包含 `test_count` ，表示测例数量。
 - 每个测例的 `Meta` 和 `Tensor` 名字以 `test.[id].` 开头，后接具体信息名称。数字 `[id]` 表示测例编号。编号必须为 0 到 test_count-1.
 - `Tensor` 名字接 `.strides` 表示步长，若没有则默认为连续。
+- 不参与计算的 `Tensor` 不应存储数据，避免 `GGUF` 文件中出现冗余内容。
+- `Elementwise` 算子需包含零步长测试。
