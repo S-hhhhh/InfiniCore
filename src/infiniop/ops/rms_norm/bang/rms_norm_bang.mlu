@@ -97,8 +97,8 @@ void rmsnormUnion(void *workspace, int core_per_cluster, int cluster_count, cnrt
     kernel_dim.y = cluster_count;
     kernel_dim.z = 1;
     kernel_type = cnrtFuncTypeUnion1; // Can choose others, but must adapt kernel_type accordingly
-    int dimsize = shape[ndim - 1];       // Length of operation dimension
-    int dim_s;                           // dim_s is the next power of 2 greater than dimsize
+    int dimsize = shape[ndim - 1];    // Length of operation dimension
+    int dim_s;                        // dim_s is the next power of 2 greater than dimsize
     float mi = log2(dimsize);
     if (floor(mi) == mi) {
         dim_s = dimsize;
