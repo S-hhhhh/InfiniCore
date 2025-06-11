@@ -1,6 +1,6 @@
+#include "rms_norm_cnnl.h"
 #include "../../../devices/bang/bang_handle.h"
 #include "../../../devices/bang/common_bang.h"
-#include "rms_norm_cnnl.h"
 
 namespace op::rms_norm::cnnl {
 
