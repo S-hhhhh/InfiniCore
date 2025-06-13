@@ -8,6 +8,9 @@
 #ifdef ENABLE_CUDA_API
 #include "cuda/causal_softmax_cuda.cuh"
 #endif
+#ifdef ENABLE_METAX_API
+#include "maca/causal_softmax_maca.h"
+#endif
 #ifdef ENABLE_ASCEND_API
 #include "ascend/causal_softmax_ascend.h"
 #endif
@@ -39,13 +42,11 @@ __C infiniStatus_t infiniopCreateCausalSoftmaxDescriptor(
 #ifdef ENABLE_CAMBRICON_API
         CREATE(INFINI_DEVICE_CAMBRICON, cnnl)
 #endif
+#ifdef ENABLE_METAX_API
+        CREATE(INFINI_DEVICE_METAX, maca)
+#endif
 #ifdef ENABLE_ASCEND_API
         CREATE(INFINI_DEVICE_ASCEND, ascend)
-#endif
-#ifdef ENABLE_METAX_GPU
-    case DevMetaxGpu: {
-        return macaCreateCausalSoftmaxDescriptor((MacaHandle_t)handle, (CausalSoftmaxMacaDescriptor_t *)desc_ptr, y_desc);
-    }
 #endif
 #ifdef ENABLE_MTHREADS_GPU
     case DevMthreadsGpu: {
@@ -75,6 +76,9 @@ __C infiniStatus_t infiniopGetCausalSoftmaxWorkspaceSize(infiniopCausalSoftmaxDe
 #endif
 #ifdef ENABLE_ASCEND_API
         GET(INFINI_DEVICE_ASCEND, ascend)
+#endif
+#ifdef ENABLE_METAX_API
+        GET(INFINI_DEVICE_METAX, maca)
 #endif
 #ifdef ENABLE_METAX_GPU
     case DevMetaxGpu: {
@@ -112,13 +116,11 @@ __C infiniStatus_t infiniopCausalSoftmax(
 #ifdef ENABLE_CAMBRICON_API
         CALCULATE(INFINI_DEVICE_CAMBRICON, cnnl)
 #endif
+#ifdef ENABLE_METAX_API
+        CALCULATE(INFINI_DEVICE_METAX, maca)
+#endif
 #ifdef ENABLE_ASCEND_API
         CALCULATE(INFINI_DEVICE_ASCEND, ascend)
-#endif
-#ifdef ENABLE_METAX_GPU
-    case DevMetaxGpu: {
-        return macaCausalSoftmax((CausalSoftmaxMacaDescriptor_t)desc, workspace, workspace_size, data, stream);
-    }
 #endif
 #ifdef ENABLE_MTHREADS_GPU
     case DevMthreadsGpu: {
@@ -146,13 +148,11 @@ __C infiniStatus_t infiniopDestroyCausalSoftmaxDescriptor(infiniopCausalSoftmaxD
 #ifdef ENABLE_CAMBRICON_API
         DESTROY(INFINI_DEVICE_CAMBRICON, cnnl)
 #endif
+#ifdef ENABLE_METAX_API
+        DESTROY(INFINI_DEVICE_METAX, maca)
+#endif
 #ifdef ENABLE_ASCEND_API
         DESTROY(INFINI_DEVICE_ASCEND, ascend)
-#endif
-#ifdef ENABLE_METAX_GPU
-    case DevMetaxGpu: {
-        return macaDestroyCausalSoftmaxDescriptor((CausalSoftmaxMacaDescriptor_t)desc);
-    }
 #endif
 #ifdef ENABLE_MTHREADS_GPU
     case DevMthreadsGpu:

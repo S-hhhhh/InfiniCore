@@ -11,6 +11,12 @@
 #ifdef ENABLE_ASCEND_API
 #include "ascend/rope_ascend.h"
 #endif
+#ifdef ENABLE_CAMBRICON_API
+#include "bang/rope_bang.h"
+#endif
+#ifdef ENABLE_METAX_API
+#include "maca/rope_maca.h"
+#endif
 
 __C infiniStatus_t infiniopCreateRoPEDescriptor(
     infiniopHandle_t handle,
@@ -39,22 +45,14 @@ __C infiniStatus_t infiniopCreateRoPEDescriptor(
 #ifdef ENABLE_CUDA_API
         CREATE(INFINI_DEVICE_NVIDIA, cuda);
 #endif
-#ifdef ENABLE_CAMBRICON_MLU
-    case DevCambriconMlu: {
-        return bangCreateRoPEDescriptor((BangHandle_t)handle,
-                                        (RoPEBangDescriptor_t *)desc_ptr, t,
-                                        pos_ids, sin_table, cos_table);
-    }
+#ifdef ENABLE_METAX_API
+        CREATE(INFINI_DEVICE_METAX, maca);
+#endif
+#ifdef ENABLE_CAMBRICON_API
+        CREATE(INFINI_DEVICE_CAMBRICON, bang);
 #endif
 #ifdef ENABLE_ASCEND_API
         CREATE(INFINI_DEVICE_ASCEND, ascend);
-#endif
-#ifdef ENABLE_METAX_GPU
-    case DevMetaxGpu: {
-        return macaCreateRoPEDescriptor((MacaHandle_t)handle,
-                                        (RoPEMacaDescriptor_t *)desc_ptr, t,
-                                        pos_ids, sin_table, cos_table);
-    }
 #endif
 #ifdef ENABLE_MTHREADS_GPU
     case DevMthreadsGpu: {
@@ -84,18 +82,14 @@ __C infiniStatus_t infiniopGetRoPEWorkspaceSize(infiniopRoPEDescriptor_t desc,
 #ifdef ENABLE_CUDA_API
         GET(INFINI_DEVICE_NVIDIA, cuda);
 #endif
-#ifdef ENABLE_CAMBRICON_MLU
-    case DevCambriconMlu: {
-        return bangGetRoPEWorkspaceSize((RoPEBangDescriptor_t)desc, size);
-    }
+#ifdef ENABLE_METAX_API
+        GET(INFINI_DEVICE_METAX, maca);
+#endif
+#ifdef ENABLE_CAMBRICON_API
+        GET(INFINI_DEVICE_CAMBRICON, bang);
 #endif
 #ifdef ENABLE_ASCEND_API
         GET(INFINI_DEVICE_ASCEND, ascend);
-#endif
-#ifdef ENABLE_METAX_GPU
-    case DevMetaxGpu: {
-        return macaGetRoPEWorkspaceSize((RoPEMacaDescriptor_t)desc, size);
-    }
 #endif
 #ifdef ENABLE_MTHREADS_GPU
     case DevMthreadsGpu: {
@@ -132,20 +126,14 @@ __C infiniStatus_t infiniopRoPE(
 #ifdef ENABLE_CUDA_API
         CALCULATE(INFINI_DEVICE_NVIDIA, cuda);
 #endif
-#ifdef ENABLE_CAMBRICON_MLU
-    case DevCambriconMlu: {
-        return bangRoPE((RoPEBangDescriptor_t)desc, workspace, workspace_size,
-                        t, pos_ids, sin_table, cos_table, stream);
-    }
+#ifdef ENABLE_METAX_API
+        CALCULATE(INFINI_DEVICE_METAX, maca);
+#endif
+#ifdef ENABLE_CAMBRICON_API
+        CALCULATE(INFINI_DEVICE_CAMBRICON, bang);
 #endif
 #ifdef ENABLE_ASCEND_API
         CALCULATE(INFINI_DEVICE_ASCEND, ascend);
-#endif
-#ifdef ENABLE_METAX_GPU
-    case DevMetaxGpu: {
-        return macaRoPE((RoPEMacaDescriptor_t)desc, workspace, workspace_size,
-                        t, pos_ids, sin_table, cos_table, stream);
-    }
 #endif
 #ifdef ENABLE_MTHREADS_GPU
     case DevMthreadsGpu: {
@@ -175,18 +163,14 @@ infiniopDestroyRoPEDescriptor(infiniopRoPEDescriptor_t desc) {
 #ifdef ENABLE_CUDA_API
         DELETE(INFINI_DEVICE_NVIDIA, cuda);
 #endif
-#ifdef ENABLE_CAMBRICON_MLU
-    case DevCambriconMlu: {
-        return bangDestroyRoPEDescriptor((RoPEBangDescriptor_t)desc);
-    }
+#ifdef ENABLE_METAX_API
+        DELETE(INFINI_DEVICE_METAX, maca);
+#endif
+#ifdef ENABLE_CAMBRICON_API
+        DELETE(INFINI_DEVICE_CAMBRICON, bang);
 #endif
 #ifdef ENABLE_ASCEND_API
         DELETE(INFINI_DEVICE_ASCEND, ascend);
-#endif
-#ifdef ENABLE_METAX_GPU
-    case DevMetaxGpu: {
-        return macaDestroyRoPEDescriptor((RoPEMacaDescriptor_t)desc);
-    }
 #endif
 #ifdef ENABLE_MTHREADS_GPU
     case DevMthreadsGpu: {
