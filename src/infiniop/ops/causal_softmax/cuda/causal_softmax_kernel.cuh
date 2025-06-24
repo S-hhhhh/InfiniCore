@@ -16,9 +16,14 @@ INFINIOP_CUDA_KERNEL causalSoftmax(
              + blockIdx.x * y_stride_h; // gridDim.x for row_id
     const Tdata *x = x_ + blockIdx.y * x_stride_b + blockIdx.x * x_stride_h;
 
+    size_t causal_length = blockIdx.x + 1;
+    if (causal_length > width) {
+        causal_length = width;
+    }
+
     // [Reduce] Find max value in each row and store in shared memory
     __shared__ Tdata max_;
-    Tdata max_0 = op::common_cuda::reduce_op::max<BLOCK_SIZE, Tdata>(x, width - height + 1 + blockIdx.x);
+    Tdata max_0 = op::common_cuda::reduce_op::max<BLOCK_SIZE, Tdata>(x, causal_length);
     if (threadIdx.x == 0) {
         max_ = max_0;
     }
@@ -31,7 +36,7 @@ INFINIOP_CUDA_KERNEL causalSoftmax(
         //          1 | * * * ... * *   |
         //          2 | * * * ... * * * |
         //  height: 3  col_id->
-        if (width + blockIdx.x >= threadIdx.x + height) {
+        if (col <= blockIdx.x) {
 #ifdef ENABLE_CUDA_API
             y[col] = exp_(x[col] - max_);
 #else
@@ -45,7 +50,7 @@ INFINIOP_CUDA_KERNEL causalSoftmax(
 
     // [Reduce] Find the sum of each updated row and store in shared memory
     __shared__ Tcompute sum_;
-    Tcompute sum_0 = op::common_cuda::reduce_op::sum<BLOCK_SIZE, Tdata, Tcompute>(y, width);
+    Tcompute sum_0 = op::common_cuda::reduce_op::sum<BLOCK_SIZE, Tdata, Tcompute>(y, causal_length);
     if (threadIdx.x == 0) {
         sum_ = sum_0;
     }
@@ -53,7 +58,9 @@ INFINIOP_CUDA_KERNEL causalSoftmax(
 
     // [Elementwise] Divide each element by the sum and store in shared memory
     for (size_t col = threadIdx.x; col < width; col += BLOCK_SIZE) {
-        y[col] /= Tdata(sum_);
+        if (col <= blockIdx.x) {
+            y[col] /= Tdata(sum_);
+        }
     }
 }
 
