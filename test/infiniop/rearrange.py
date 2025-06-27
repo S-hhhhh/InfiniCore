@@ -60,11 +60,6 @@ def column_major_strides(shape):
 _TEST_CASES = [
     # (shape, x_stride, y_stride)
     (
-        (2, 4, 64),  # shape
-        (2, 4, 8),   # x_stride
-        (512, 128, 2) # y_stride
-    ),
-    (
         (100, 100),  # shape
         (1, 100),    # x_stride
         (100, 1)     # y_stride
@@ -88,6 +83,11 @@ _TEST_CASES = [
         (2001, 2001), # shape
         (1, 2001),    # x_stride
         (2001, 1)     # y_stride
+    ),
+    (
+        (2, 2, 2, 4), # shape
+        (16, 8, 4, 1), # x_stride
+        (16, 8, 1, 2)  # y_stride
     ),
     (
         (3, 4, 7, 53, 9), # shape
@@ -123,6 +123,13 @@ class RerrangeDescriptor(Structure):
 infiniopRearrangeDescriptor_t = POINTER(RerrangeDescriptor)
 
 
+def rearrange_torch(x, x_shape, y_stride):
+    y_ = x.clone()
+    y_.set_(y_.untyped_storage(), 0, x_shape, y_stride)
+    y_[:] = x.view_as(y_)
+    return y_
+
+
 def test(
     lib,
     handle,
@@ -139,6 +146,8 @@ def test(
 
     x = torch.rand(shape, dtype=dtype).to(torch_device)
     y = torch.zeros(shape, dtype=dtype).to(torch_device)
+
+    rearrange_torch(x, shape, y_stride)
 
     x, y = [
         rearrange_if_needed(tensor, stride)
@@ -177,7 +186,7 @@ def test(
     # Profiling workflow
     if PROFILE:
         # fmt: off
-        profile_operation("PyTorch", lambda: rearrange_tensor(y, y_stride), torch_device, NUM_PRERUN, NUM_ITERATIONS)
+        profile_operation("PyTorch", lambda: rearrange_torch(x, shape, y_stride), torch_device, NUM_PRERUN, NUM_ITERATIONS)
         profile_operation("    lib", lambda: lib_rearrange(), torch_device, NUM_PRERUN, NUM_ITERATIONS)
         # fmt: on
 
