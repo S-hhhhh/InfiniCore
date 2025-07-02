@@ -73,7 +73,7 @@ infiniStatus_t calculate(
     // - /usr/local/musa/include/mudnn_base.h
     // - /usr/local/musa/include/mudnn_math.h
     // - /usr/local/musa/include/mudnn.h
-    // only support 3D tensor matmul
+    // only support 2D and 3D tensor matmul
 
     // 1. set BatchMatMul operator Descriptor
     ::musa::dnn::BatchMatMul* matmul_operator = new ::musa::dnn::BatchMatMul();
@@ -89,9 +89,16 @@ infiniStatus_t calculate(
     ::musa::dnn::Tensor *left = new ::musa::dnn::Tensor();
     ::musa::dnn::Tensor *right = new ::musa::dnn::Tensor();
 
-    out->SetType(::musa::dnn::Tensor::Type::FLOAT);
-    left->SetType(::musa::dnn::Tensor::Type::FLOAT);
-    right->SetType(::musa::dnn::Tensor::Type::FLOAT);
+    if constexpr (std::is_same<Tdata, half>::value) {
+        out->SetType(::musa::dnn::Tensor::Type::HALF);
+        left->SetType(::musa::dnn::Tensor::Type::HALF);
+        right->SetType(::musa::dnn::Tensor::Type::HALF);
+    }
+    else {
+        out->SetType(::musa::dnn::Tensor::Type::FLOAT);
+        left->SetType(::musa::dnn::Tensor::Type::FLOAT);
+        right->SetType(::musa::dnn::Tensor::Type::FLOAT);
+    }
 
     // std::cout << "info.batch: " << info.batch << std::endl;
     // std::cout << "info.m: " << info.m << std::endl;
