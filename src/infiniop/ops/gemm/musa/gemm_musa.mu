@@ -1,6 +1,7 @@
 #include "../../../devices/musa/common_musa.h"
 #include "../../../devices/musa/musa_handle.h"
 #include "gemm_musa.h"
+#include <mudnn.h>
 
 namespace op::gemm::musa {
 
@@ -67,36 +68,101 @@ infiniStatus_t calculate(
     auto op_a = info.a_matrix.row_stride == 1 ? MUBLAS_OP_N : MUBLAS_OP_T;
     auto op_b = info.b_matrix.row_stride == 1 ? MUBLAS_OP_N : MUBLAS_OP_T;
 
-    CHECK_STATUS(_internal->useMublas(
-        (musaStream_t)stream,
-        [&](mublasHandle_t handle) {
-            CHECK_MUBLAS(
-                mublasGemmStridedBatchedEx(
-                    handle,
-                    op_a,
-                    op_b,
-                    static_cast<int>(info.m),
-                    static_cast<int>(info.n),
-                    static_cast<int>(info.k),
-                    &alpha_,
-                    a,
-                    a_type,
-                    static_cast<int>(info.a_matrix.ld()),
-                    info.a_matrix.stride,
-                    b,
-                    b_type,
-                    static_cast<int>(info.b_matrix.ld()),
-                    info.b_matrix.stride,
-                    &beta_,
-                    c,
-                    c_type,
-                    static_cast<int>(info.c_matrix.ld()),
-                    info.c_matrix.stride,
-                    static_cast<int>(info.batch),
-                    compute_type,
-                    MUBLAS_GEMM_DEFAULT));
-            return INFINI_STATUS_SUCCESS;
-        }));
+
+    // 0. For muDNN development, refer to the official documentation and the following headers:
+    // - /usr/local/musa/include/mudnn_base.h
+    // - /usr/local/musa/include/mudnn_math.h
+    // - /usr/local/musa/include/mudnn.h
+    // only support 3D tensor matmul
+
+    // 1. set BatchMatMul operator Descriptor
+    ::musa::dnn::BatchMatMul* matmul_operator = new ::musa::dnn::BatchMatMul();
+    matmul_operator->SetComputeMode(::musa::dnn::BatchMatMul::ComputeMode::TENSOR);
+
+    // 2. set BatchMatMul Handle and stream  
+    ::musa::dnn::Handle* mudnn_handles_t;
+    mudnn_handles_t = new ::musa::dnn::Handle();
+    mudnn_handles_t->SetStream((musaStream_t) stream);
+
+    // 3. BatchMatMul Tensor config
+    ::musa::dnn::Tensor *out = new ::musa::dnn::Tensor();
+    ::musa::dnn::Tensor *left = new ::musa::dnn::Tensor();
+    ::musa::dnn::Tensor *right = new ::musa::dnn::Tensor();
+
+    out->SetType(::musa::dnn::Tensor::Type::FLOAT);
+    left->SetType(::musa::dnn::Tensor::Type::FLOAT);
+    right->SetType(::musa::dnn::Tensor::Type::FLOAT);
+
+    // std::cout << "info.batch: " << info.batch << std::endl;
+    // std::cout << "info.m: " << info.m << std::endl;
+    // std::cout << "info.n: " << info.n << std::endl;
+    // std::cout << "info.k: " << info.k << std::endl;
+
+    int64_t a_dims[3];
+    a_dims[0] = info.batch;
+    a_dims[1] = info.m;
+    a_dims[2] = info.k;
+    left->SetNdInfo(3, a_dims);
+    ::musa::dnn::Status status1 = left->SetNdInfo(3, a_dims);
+    // if (status1 == ::musa::dnn::Status::SUCCESS) {
+    //     std::cerr << "Success to set left." << std::endl;
+    // }
+
+    int64_t b_dims[3];
+    b_dims[0] = info.batch;
+    b_dims[1] = info.k;
+    b_dims[2] = info.n;
+    right->SetNdInfo(3, b_dims);
+
+    int64_t c_dims[3];
+    c_dims[0] = info.batch;
+    c_dims[1] = info.m;
+    c_dims[2] = info.n;
+    out->SetNdInfo(3, c_dims);
+
+    out->SetAddr(c);
+    left->SetAddr(a);
+    right->SetAddr(b);
+
+
+    // 4. set BatchMatMul MemoryHandler
+    ::musa::dnn::MemoryMaintainer maintainer = [](size_t size) -> ::musa::dnn::MemoryHandler {
+        void* ptr = nullptr;
+        musaMalloc(&ptr, size);  
+        return ::musa::dnn::MemoryHandler(ptr, [](void* p) {
+            if (p) musaFree(p); 
+        });
+    };
+
+    // 5. set BatchMatMul GetWorkspaceSize
+    size_t workspace_size_in_bytes = 0;
+    matmul_operator->GetWorkspaceSize(*mudnn_handles_t, workspace_size_in_bytes, *out, *left, *right);
+
+    // std::cout << "info.is_transed: " << info.is_transed << std::endl;
+    // std::cout << "left dims: " << a_dims[0] << ", " << a_dims[1] << ", " << a_dims[2] << std::endl;
+    // std::cout << "right dims: " << b_dims[0] << ", " << b_dims[1] << ", " << b_dims[2] << std::endl;
+    // std::cout << "output dims: " << c_dims[0] << ", " << c_dims[1] << ", " << c_dims[2] << std::endl;
+
+
+    if (info.is_transed) {
+        matmul_operator->SetTranspose(true, true);
+    } else {
+        matmul_operator->SetTranspose(false, false);
+    }
+
+    // 6. set BatchMatMul Alpha Beta and Gamma
+    matmul_operator->SetAlpha((double)alpha);
+    matmul_operator->SetBeta((double)beta);
+    matmul_operator->SetGamma(0.0);  
+
+    matmul_operator->Run(
+        *mudnn_handles_t,
+        *out,
+        *left,
+        *right,
+        maintainer
+    );
+
     return INFINI_STATUS_SUCCESS;
 }
 
