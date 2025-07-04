@@ -52,7 +52,7 @@ jobs:
     - name: Python Test
       run: python scripts/python_test.py --cpu
 
-    - name: Gguf Generation Test
+    - name: GGUF Generation Test
       run: python scripts/gguf_test.py --mode gguf
 
     - name: C++ Test on Linux
