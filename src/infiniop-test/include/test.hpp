@@ -47,7 +47,7 @@ std::vector<std::shared_ptr<Result>> runAllTests(
     const GGUFFileReader &,
     infiniDevice_t device, int device_id,
     size_t warm_ups, size_t iterations,
-    double rtol, double atol);
+    double rtol, double atol, bool equal_nan=false);
 
 // Run a single test read from a GGUF file
 std::shared_ptr<Result> runTest(
@@ -55,10 +55,11 @@ std::shared_ptr<Result> runTest(
     infiniDevice_t device, int device_id,
     size_t warm_ups, size_t iterations,
     double rtol, double atol,
-    size_t test_id);
+    size_t test_id, 
+    bool equal_nan=false);
 
 // Check if two tensors are close within given tolerance
-void allClose(std::shared_ptr<Tensor> actual, std::shared_ptr<Tensor> expected, double rtol = 1e-3, double atol = 1e-3);
+void allClose(std::shared_ptr<Tensor> actual, std::shared_ptr<Tensor> expected, double rtol = 1e-3, double atol = 1e-3, bool equal_nan = false);
 
 // Check if two tensors are equal
 void allEqual(std::shared_ptr<Tensor> actual, std::shared_ptr<Tensor> expected);
@@ -81,43 +82,45 @@ public:
 } // namespace infiniop_test::base
 
 // Quick macro for declaring a new testcase
-#define DECLARE_INFINIOP_TEST(name)                                           \
-    namespace infiniop_test::name {                                           \
-    class Test : public infiniop_test::base::Test {                           \
-        double _rtol, _atol;                                                  \
-                                                                              \
-    public:                                                                   \
-        static std::string op_name() { return #name; }                        \
-        static std::shared_ptr<Test> build(                                   \
-            std::unordered_map<std::string, std::vector<uint8_t>> attributes, \
-            std::unordered_map<std::string, std::shared_ptr<Tensor>> tensors, \
-            double, double);                                                  \
-                                                                              \
-        static std::vector<std::string> attribute_names();                    \
-        static std::vector<std::string> tensor_names();                       \
-        static std::vector<std::string> output_names();                       \
-                                                                              \
-        std::shared_ptr<infiniop_test::Result> run(                           \
-            infiniopHandle_t handle, infiniDevice_t device, int device_id,    \
-            size_t warm_ups, size_t iterations) override;                     \
-                                                                              \
-        std::string toString() const override;                                \
-                                                                              \
-        ~Test();                                                              \
-                                                                              \
-    private:                                                                  \
-        struct Attributes;                                                    \
-        Attributes *_attributes;                                              \
-        Test() = delete;                                                      \
-        Test(double rtol, double atol) : _rtol(rtol), _atol(atol) {}          \
-    };                                                                        \
+#define DECLARE_INFINIOP_TEST(name)                                                         \
+    namespace infiniop_test::name {                                                         \
+    class Test : public infiniop_test::base::Test {                                         \
+        double _rtol, _atol;                                                                \
+        bool _equal_nan;                                                                    \
+                                                                                            \
+    public:                                                                                 \
+        static std::string op_name() { return #name; }                                      \
+        static std::shared_ptr<Test> build(                                                 \
+            std::unordered_map<std::string, std::vector<uint8_t>> attributes,               \
+            std::unordered_map<std::string, std::shared_ptr<Tensor>> tensors,               \
+            double, double, bool);                                                          \
+                                                                                            \
+        static std::vector<std::string> attribute_names();                                  \
+        static std::vector<std::string> tensor_names();                                     \
+        static std::vector<std::string> output_names();                                     \
+                                                                                            \
+        std::shared_ptr<infiniop_test::Result> run(                                         \
+            infiniopHandle_t handle, infiniDevice_t device, int device_id,                  \
+            size_t warm_ups, size_t iterations) override;                                   \
+                                                                                            \
+        std::string toString() const override;                                              \
+                                                                                            \
+        ~Test();                                                                            \
+                                                                                            \
+    private:                                                                                \
+        struct Attributes;                                                                  \
+        Attributes *_attributes;                                                            \
+        Test() = delete;                                                                    \
+        Test(double rtol, double atol, bool equal_nan = false)                              \
+        : _rtol(rtol), _atol(atol), _equal_nan(equal_nan) {}                                \
+    };                                                                                      \
     }
 
 namespace infiniop_test {
 using BuilderFunc = std::function<std::shared_ptr<infiniop_test::base::Test>(
     std::unordered_map<std::string, std::vector<uint8_t>>,
     std::unordered_map<std::string, std::shared_ptr<Tensor>>,
-    double, double)>;
+    double, double, bool)>;
 
 // Testcase Registry
 // Each testcase should provid a formatted builder, attribute names, and tensor names
