@@ -61,6 +61,24 @@ __device__ __forceinline__ Tdata max(const Tdata *data_ptr, size_t count) {
     return BlockReduce(temp_storage).Reduce(max_, cub::Max(), BLOCK_SIZE);
 }
 
+// Sum(x) on non-contiguous data of length count
+template <unsigned int BLOCK_SIZE, typename Tdata, typename Tcompute>
+__device__ __forceinline__ Tcompute sum(
+    const Tdata *data_ptr, 
+    size_t count, 
+    ptrdiff_t stride)
+{
+    Tcompute s = 0;
+
+    for (size_t i = threadIdx.x; i < count; i += BLOCK_SIZE) {
+        s += Tcompute(data_ptr[i * stride]);
+    }
+
+    using BlockReduce = cub::BlockReduce<Tcompute, BLOCK_SIZE>;
+    __shared__ typename BlockReduce::TempStorage temp_storage;
+
+    return BlockReduce(temp_storage).Sum(s);
+}
 } // namespace op::common_cuda::reduce_op
 
 #endif
