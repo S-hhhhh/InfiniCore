@@ -11,10 +11,10 @@
 template <unsigned int BLOCK_SIZE, typename Tdata, typename Tcompute>
 INFINIOP_CUDA_KERNEL ReduceMean(
     Tdata *y_, const Tdata *x_,
-    size_t batch, size_t height, size_t width,
-    ptrdiff_t y_stride_b, ptrdiff_t y_stride_h,
-    ptrdiff_t x_stride_b, ptrdiff_t x_stride_h, ptrdiff_t x_stride_w) {
-    ReduceMeanKernel<BLOCK_SIZE, Tdata, Tcompute>(y_, x_, batch, height, width, y_stride_b, y_stride_h, x_stride_b, x_stride_h, x_stride_w);
+    size_t batch, size_t channels, size_t height, size_t width,
+    ptrdiff_t y_stride_b, ptrdiff_t y_stride_c, ptrdiff_t y_stride_h,
+    ptrdiff_t x_stride_b, ptrdiff_t x_stride_c, ptrdiff_t x_stride_h, ptrdiff_t x_stride_w) {
+    ReduceMeanKernel<BLOCK_SIZE, Tdata, Tcompute>(y_, x_, batch, channels, height, width, y_stride_b, y_stride_c, y_stride_h, x_stride_b, x_stride_c, x_stride_h, x_stride_w);
 }
 
 namespace op::reduce_mean::nvidia {
@@ -43,29 +43,29 @@ infiniStatus_t Descriptor::create(
 
 template <unsigned int BLOCK_SIZE>
 infiniStatus_t launchKernel(void *y, const void *x, infiniDtype_t dtype,
-                            size_t batch_size, size_t height, size_t width,
-                            ptrdiff_t y_stride_b, ptrdiff_t y_stride_h,
-                            ptrdiff_t x_stride_b, ptrdiff_t x_stride_h, ptrdiff_t x_stride_w, 
+                            size_t batch_size, size_t channels, size_t height, size_t width,
+                            ptrdiff_t y_stride_b, ptrdiff_t y_stride_c, ptrdiff_t y_stride_h,
+                            ptrdiff_t x_stride_b, ptrdiff_t x_stride_c, ptrdiff_t x_stride_h, ptrdiff_t x_stride_w,
                             cudaStream_t stream) {
-    dim3 grid(uint32_t(batch_size), uint32_t(height), 1);
+    dim3 grid=dim3(uint32_t(batch_size), uint32_t(channels), uint32_t(height));
     if (dtype == INFINI_DTYPE_F16) {
         ReduceMean<BLOCK_SIZE, half, float>
             <<<grid, BLOCK_SIZE, 0, stream>>>((half *)y, (const half *)x,
-                                              batch_size, height, width,
-                                              y_stride_b, y_stride_h,
-                                              x_stride_b, x_stride_h, x_stride_w);
+                                              batch_size, channels, height, width,
+                                              y_stride_b, y_stride_c, y_stride_h,
+                                              x_stride_b, x_stride_c, x_stride_h, x_stride_w);
     } else if (dtype == INFINI_DTYPE_BF16) {
         ReduceMean<BLOCK_SIZE, __nv_bfloat16, float>
             <<<grid, BLOCK_SIZE, 0, stream>>>((__nv_bfloat16 *)y, (const __nv_bfloat16 *)x,
-                                              batch_size, height, width,
-                                              y_stride_b, y_stride_h,
-                                              x_stride_b, x_stride_h, x_stride_w);
+                                              batch_size, channels, height, width,
+                                              y_stride_b, y_stride_c, y_stride_h,
+                                              x_stride_b, x_stride_c, x_stride_h, x_stride_w);
     } else if (dtype == INFINI_DTYPE_F32) {
         ReduceMean<BLOCK_SIZE, float, float>
             <<<grid, BLOCK_SIZE, 0, stream>>>((float *)y, (const float *)x,
-                                              batch_size, height, width,
-                                              y_stride_b, y_stride_h,
-                                              x_stride_b, x_stride_h, x_stride_w);
+                                              batch_size, channels, height, width,
+                                              y_stride_b, y_stride_c, y_stride_h,
+                                              x_stride_b, x_stride_c, x_stride_h, x_stride_w);
     } else {
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }
@@ -79,8 +79,9 @@ infiniStatus_t Descriptor::calculate(void *workspace, size_t workspace_size,
     cudaStream_t stream = (cudaStream_t)stream_;
     if (_opaque->internal->maxThreadsPerBlock() == CUDA_BLOCK_SIZE_1024) {
         CHECK_STATUS(launchKernel<CUDA_BLOCK_SIZE_1024>(
-            y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2],
-            _info.y_strides[0], _info.y_strides[1], _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], stream));
+            y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2], _info.shape[3],
+            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2], 
+            _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], _info.x_strides[3], stream));
     } else if (_opaque->internal->maxThreadsPerBlock() == CUDA_BLOCK_SIZE_512) {
         CHECK_STATUS(launchKernel<CUDA_BLOCK_SIZE_512>(
             y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2],

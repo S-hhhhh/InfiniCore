@@ -29,50 +29,76 @@ public:
             CHECK_STATUS(INFINI_STATUS_BAD_TENSOR_SHAPE);
         }
         CHECK_REDUCE_SHAPE(x_desc->shape(), dim, y_desc->shape());
-        if(ndim == 3){
-            std::vector<size_t> shape = x_desc->shape();
-            std::vector<ptrdiff_t> y_strides = y_desc->strides();
-            std::vector<ptrdiff_t> x_strides = x_desc->strides();
-            if (dim != 2){
-                std::swap(shape[dim], shape[2]);
-                std::swap(y_strides[dim], y_strides[2]);
-                std::swap(x_strides[dim], x_strides[2]);
-            }
-            return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
-                dtype, shape, y_strides, x_strides});
-        }
-        else if (ndim == 2){
-            std::vector<size_t> shape = x_desc->shape();
-            std::vector<ptrdiff_t> y_strides = y_desc->strides();
-            std::vector<ptrdiff_t> x_strides = x_desc->strides();
-            if (dim != 1){
-                std::swap(shape[dim], shape[1]);
-                std::swap(y_strides[dim], y_strides[1]);
-                std::swap(x_strides[dim], x_strides[1]);
-            }
-            shape.insert(shape.begin(), 1);
-            y_strides.insert(y_strides.begin(), 0);
-            x_strides.insert(x_strides.begin(), 0);
-            return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
-                dtype, shape, y_strides, x_strides});
-        }
-        else if (ndim == 1){
-            std::vector<size_t> shape = {1, 1, (x_desc->shape())[0]};
-            std::vector<ptrdiff_t> y_strides = {0, 0, (y_desc->strides())[0]};
-            std::vector<ptrdiff_t> x_strides = {0, 0, (x_desc->strides())[0]};
-            return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
-                dtype, shape, y_strides, x_strides});
-        }
+        if (ndim > 4) return INFINI_STATUS_BAD_TENSOR_SHAPE;
         else if (ndim == 0){
-            std::vector<size_t> shape = {1, 1, 1};
-            std::vector<ptrdiff_t> y_strides = {0, 0, 0};
-            std::vector<ptrdiff_t> x_strides = {0, 0, 0};
+            std::vector<size_t> shape = {1, 1, 1, 1};
+            std::vector<ptrdiff_t> y_strides = {0, 0, 0, 0};
+            std::vector<ptrdiff_t> x_strides = {0, 0, 0, 0};
             return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
                 dtype, shape, y_strides, x_strides});
         }
         else{
-            return INFINI_STATUS_BAD_TENSOR_SHAPE;
+            std::vector<size_t> shape = x_desc->shape();
+            std::vector<ptrdiff_t> y_strides = y_desc->strides();
+            std::vector<ptrdiff_t> x_strides = x_desc->strides();
+            if (dim != (shape.size() - 1)){
+                std::swap(shape[dim], shape[shape.size() - 1]);
+                std::swap(y_strides[dim], y_strides[shape.size() - 1]);
+                std::swap(x_strides[dim], x_strides[shape.size() - 1]);
+            }
+            while (shape.size() < 4){
+                shape.insert(shape.begin(), 1);
+                y_strides.insert(y_strides.begin(), 0);
+                x_strides.insert(x_strides.begin(), 0);
+            }
+            return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
+                dtype, shape, y_strides, x_strides});
         }
+
+        // if(ndim == 3){
+        //     std::vector<size_t> shape = x_desc->shape();
+        //     std::vector<ptrdiff_t> y_strides = y_desc->strides();
+        //     std::vector<ptrdiff_t> x_strides = x_desc->strides();
+        //     if (dim != 2){
+        //         std::swap(shape[dim], shape[2]);
+        //         std::swap(y_strides[dim], y_strides[2]);
+        //         std::swap(x_strides[dim], x_strides[2]);
+        //     }
+        //     return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
+        //         dtype, shape, y_strides, x_strides});
+        // }
+        // else if (ndim == 2){
+        //     std::vector<size_t> shape = x_desc->shape();
+        //     std::vector<ptrdiff_t> y_strides = y_desc->strides();
+        //     std::vector<ptrdiff_t> x_strides = x_desc->strides();
+        //     if (dim != 1){
+        //         std::swap(shape[dim], shape[1]);
+        //         std::swap(y_strides[dim], y_strides[1]);
+        //         std::swap(x_strides[dim], x_strides[1]);
+        //     }
+        //     shape.insert(shape.begin(), 1);
+        //     y_strides.insert(y_strides.begin(), 0);
+        //     x_strides.insert(x_strides.begin(), 0);
+        //     return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
+        //         dtype, shape, y_strides, x_strides});
+        // }
+        // else if (ndim == 1){
+        //     std::vector<size_t> shape = {1, 1, (x_desc->shape())[0]};
+        //     std::vector<ptrdiff_t> y_strides = {0, 0, (y_desc->strides())[0]};
+        //     std::vector<ptrdiff_t> x_strides = {0, 0, (x_desc->strides())[0]};
+        //     return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
+        //         dtype, shape, y_strides, x_strides});
+        // }
+        // else if (ndim == 0){
+        //     std::vector<size_t> shape = {1, 1, 1};
+        //     std::vector<ptrdiff_t> y_strides = {0, 0, 0};
+        //     std::vector<ptrdiff_t> x_strides = {0, 0, 0};
+        //     return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
+        //         dtype, shape, y_strides, x_strides});
+        // }
+        // else{
+        //     return INFINI_STATUS_BAD_TENSOR_SHAPE;
+        // }
     }
 };
 
