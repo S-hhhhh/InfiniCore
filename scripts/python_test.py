@@ -28,9 +28,19 @@ def run_tests(args):
         "reduce_mean.py"
         "and.py",
         "or.py",
+        "equal.py",
+        "where.py",
+        "gelu.py",
+        "gelu_backward.py",
+        "relu_backward.py",
+        "sigmoid_backward.py",
+        "hardswish.py",
+        "cos.py",
+        "sin.py",
         "silu.py",
         "exp.py",
         "tanh.py",
+        "reduce_max.py",
     ]:
         result = subprocess.run(
             f"python {test} {args} --debug", text=True, encoding="utf-8", shell=True
