@@ -1,23 +1,25 @@
-import torch
 import ctypes
 from ctypes import c_uint64
+from enum import Enum, auto
+
+import torch
 from libinfiniop import (
     LIBINFINIOP,
-    TestTensor,
-    get_test_devices,
-    check_error,
-    test_operator,
-    get_args,
-    debug,
-    get_tolerance,
-    profile_operation,
-    TestWorkspace,
+    InfiniDeviceEnum,
+    InfiniDeviceNames,
     InfiniDtype,
     InfiniDtypeNames,
-    InfiniDeviceNames,
+    TestTensor,
+    TestWorkspace,
+    check_error,
+    debug,
+    get_args,
+    get_test_devices,
+    get_tolerance,
     infiniopOperatorDescriptor_t,
+    profile_operation,
+    test_operator,
 )
-from enum import Enum, auto
 
 # ==============================================================================
 #  Configuration (Internal Use Only)
@@ -37,12 +39,17 @@ _TEST_CASES_ = [
     ((4, 4, 5632), (45056, 5632, 1), (45056, 5632, 1), (45056, 5632, 1)),
 ]
 
-# Equal算子不支持inplace操作，所以只有OUT_OF_PLACE
+
 class Inplace(Enum):
     OUT_OF_PLACE = auto()
+    INPLACE_A = auto()
+    INPLACE_B = auto()
 
-# Equal算子只支持OUT_OF_PLACE操作
-_INPLACE = [Inplace.OUT_OF_PLACE]
+
+# Inplace options applied for each test case in _TEST_CASES_
+_INPLACE = [
+    Inplace.OUT_OF_PLACE,
+]
 
 # Form the test cases by appending each element of _INPLACE to each tuple in _TEST_CASES_
 _TEST_CASES = [
@@ -51,18 +58,30 @@ _TEST_CASES = [
     for inplace_item in _INPLACE
 ]
 
-# Data types used for testing - equal算子支持所有合法类型作为输入
-_TENSOR_DTYPES = [InfiniDtype.F16, InfiniDtype.F32, InfiniDtype.BF16]  # 先测试基本的浮点类型
+# Data types used for testing
+_TENSOR_DTYPES = [
+    InfiniDtype.BOOL,
+    InfiniDtype.I8,
+    InfiniDtype.I16,
+    InfiniDtype.I32,
+    InfiniDtype.I64,
+    InfiniDtype.BF16,
+    InfiniDtype.F16,
+    InfiniDtype.F32,
+    InfiniDtype.F64,
+]
 
-# Tolerance map for different data types - bool输出类型不需要tolerance，但保留用于调试
+# Tolerance map for different data types
 _TOLERANCE_MAP = {
-    InfiniDtype.F16: {"atol": 0, "rtol": 0},
-    InfiniDtype.F32: {"atol": 0, "rtol": 0},
-    InfiniDtype.BF16: {"atol": 0, "rtol": 0},
+    InfiniDtype.BOOL: {"atol": 0, "rtol": 0},
     InfiniDtype.I8: {"atol": 0, "rtol": 0},
     InfiniDtype.I16: {"atol": 0, "rtol": 0},
     InfiniDtype.I32: {"atol": 0, "rtol": 0},
     InfiniDtype.I64: {"atol": 0, "rtol": 0},
+    InfiniDtype.BF16: {"atol": 0, "rtol": 0},
+    InfiniDtype.F16: {"atol": 0, "rtol": 0},
+    InfiniDtype.F32: {"atol": 0, "rtol": 0},
+    InfiniDtype.F64: {"atol": 0, "rtol": 0},
 }
 
 DEBUG = False
@@ -71,8 +90,7 @@ NUM_PRERUN = 10
 NUM_ITERATIONS = 1000
 
 
-def equal(c, a, b):
-    """PyTorch参考实现：element-wise相等比较，对应torch.eq而不是torch.equal"""
+def eq(c, a, b):
     torch.eq(a, b, out=c)
 
 
@@ -87,24 +105,18 @@ def test(
     dtype=torch.float16,
     sync=None,
 ):
-    # 创建输入张量a和b
     a = TestTensor(shape, a_stride, dtype, device)
     b = TestTensor(shape, b_stride, dtype, device)
-    
-    # equal算子不支持inplace操作，输出c始终是新的bool类型张量
-    if inplace != Inplace.OUT_OF_PLACE:
-        return  # Skip unsupported inplace operations
-    
-    # 输出张量c必须是bool类型
-    # 由于InfiniDtype.BOOL可能不被支持，我们需要检查并使用替代方案
-    try:
-        c = TestTensor(shape, c_stride, InfiniDtype.BOOL, device, mode="zeros")
-    except (ValueError, AttributeError):
-        # 如果BOOL类型不支持，尝试使用I8或其他方式
-        print("Warning: BOOL dtype not supported, using I8 as fallback")
-        c = TestTensor(shape, c_stride, InfiniDtype.I8, device, mode="zeros")
-        # 需要手动创建torch bool张量用于参考
-        c_torch_bool = torch.zeros(shape, dtype=torch.bool, device=c.torch_tensor().device)
+    if inplace == Inplace.INPLACE_A:
+        if a_stride != c_stride:
+            return
+        c = a
+    elif inplace == Inplace.INPLACE_B:
+        if c_stride != b_stride:
+            return
+        c = b
+    else:
+        c = TestTensor(shape, c_stride, InfiniDtype.BOOL, device, mode="ones")
 
     if c.is_broadcast():
         return
@@ -114,19 +126,11 @@ def test(
         f"dtype:{InfiniDtypeNames[dtype]} inplace:{inplace}"
     )
 
-    # PyTorch参考计算
-    if 'c_torch_bool' in locals():
-        # 使用bool类型的张量进行参考计算
-        torch.eq(a.torch_tensor(), b.torch_tensor(), out=c_torch_bool)
-        reference_result = c_torch_bool
-    else:
-        torch.eq(a.torch_tensor(), b.torch_tensor(), out=c.torch_tensor())
-        reference_result = c.torch_tensor()
+    eq(c.torch_tensor(), a.torch_tensor(), b.torch_tensor())
 
     if sync is not None:
         sync()
 
-    # 创建equal算子描述符
     descriptor = infiniopOperatorDescriptor_t()
     check_error(
         LIBINFINIOP.infiniopCreateEqualDescriptor(
@@ -142,7 +146,6 @@ def test(
     for tensor in [a, b, c]:
         tensor.destroy_desc()
 
-    # 获取工作空间大小
     workspace_size = c_uint64(0)
     check_error(
         LIBINFINIOP.infiniopGetEqualWorkspaceSize(
@@ -164,57 +167,19 @@ def test(
             )
         )
 
-    # 执行库函数
     lib_equal()
 
-    # 验证结果 - bool类型的精确比较，不需要tolerance
     atol, rtol = get_tolerance(_TOLERANCE_MAP, dtype)
-    
-    # 检查结果是否匹配（可能需要类型转换）
-    actual_result = c.actual_tensor()
-    if 'c_torch_bool' in locals():
-        # 如果使用了fallback类型，需要转换为bool进行比较
-        if actual_result.dtype != torch.bool:
-            actual_result = actual_result.bool()
-    
-    # 添加详细的调试信息
-    print(f"  Expected result dtype: {reference_result.dtype}, shape: {reference_result.shape}")
-    print(f"  Actual result dtype: {actual_result.dtype}, shape: {actual_result.shape}")
-    print(f"  Input a sample: {a.torch_tensor().flatten()[:5]}")
-    print(f"  Input b sample: {b.torch_tensor().flatten()[:5]}")
-    print(f"  Expected sample: {reference_result.flatten()[:10]}")
-    print(f"  Actual sample: {actual_result.flatten()[:10]}")
-    
-    # 检查有多少元素不匹配
-    mismatch_mask = actual_result != reference_result
-    num_mismatches = mismatch_mask.sum().item()
-    total_elements = actual_result.numel()
-    print(f"  Mismatches: {num_mismatches}/{total_elements} ({100*num_mismatches/total_elements:.2f}%)")
-    
-    if num_mismatches > 0:
-        print(f"  First few mismatches:")
-        mismatch_indices = torch.where(mismatch_mask.flatten())[0][:5]
-        for idx in mismatch_indices:
-            idx = idx.item()
-            print(f"    Index {idx}: expected {reference_result.flatten()[idx]}, got {actual_result.flatten()[idx]}")
-            print(f"      a[{idx}] = {a.torch_tensor().flatten()[idx]}, b[{idx}] = {b.torch_tensor().flatten()[idx]}")
-    
     if DEBUG:
-        debug(actual_result, reference_result, atol=atol, rtol=rtol)
-    
-    assert torch.equal(actual_result, reference_result), "Equal operation results do not match exactly"
+        debug(c.actual_tensor(), c.torch_tensor(), atol=atol, rtol=rtol)
+    assert torch.equal(c.actual_tensor(), c.torch_tensor())
 
     # Profiling workflow
     if PROFILE:
         # fmt: off
-        if 'c_torch_bool' in locals():
-            profile_operation("PyTorch", lambda: torch.eq(a.torch_tensor(), b.torch_tensor(), out=c_torch_bool), device, NUM_PRERUN, NUM_ITERATIONS)
-        else:
-            profile_operation("PyTorch", lambda: torch.eq(a.torch_tensor(), b.torch_tensor(), out=c.torch_tensor()), device, NUM_PRERUN, NUM_ITERATIONS)
+        profile_operation("PyTorch", lambda: eq(c.torch_tensor(), a.torch_tensor(), b.torch_tensor()), device, NUM_PRERUN, NUM_ITERATIONS)
         profile_operation("    lib", lambda: lib_equal(), device, NUM_PRERUN, NUM_ITERATIONS)
         # fmt: on
-    
-    # 清理描述符
     check_error(LIBINFINIOP.infiniopDestroyEqualDescriptor(descriptor))
 
 
@@ -228,6 +193,184 @@ if __name__ == "__main__":
     NUM_ITERATIONS = args.num_iterations
 
     for device in get_test_devices(args):
+        if device == InfiniDeviceEnum.ILUVATAR:
+            _TENSOR_DTYPES = [
+                InfiniDtype.BOOL,
+                InfiniDtype.I8,
+                InfiniDtype.I16,
+                InfiniDtype.I32,
+                InfiniDtype.I64,
+                InfiniDtype.BF16,
+                InfiniDtype.F16,
+                InfiniDtype.F32,
+            ]
         test_operator(device, test, _TEST_CASES, _TENSOR_DTYPES)
 
     print("\033[92mTest passed!\033[0m")
+
+
+# import ctypes
+# from ctypes import c_uint64
+# from enum import Enum, auto
+# import numpy as np
+
+# import torch
+# from libinfiniop import (
+#     LIBINFINIOP,
+#     InfiniDeviceEnum,
+#     InfiniDeviceNames,
+#     InfiniDtype,
+#     InfiniDtypeNames,
+#     TestTensor,
+#     TestWorkspace,
+#     check_error,
+#     debug,
+#     get_args,
+#     get_test_devices,
+#     get_tolerance,
+#     infiniopOperatorDescriptor_t,
+#     profile_operation,
+#     test_operator,
+# )
+
+# class Inplace(Enum):
+#     OUT_OF_PLACE = auto()
+#     INPLACE_A = auto()
+#     INPLACE_B = auto()
+
+# def eq(c, a, b):
+#     torch.eq(a, b, out=c)
+
+# def simple_test():
+#     """一个最简单的测试案例"""
+#     print("=== SIMPLE EQUAL TEST ===")
+    
+#     # 创建最简单的测试数据
+#     shape = (2, 2)
+#     device = InfiniDeviceEnum.CUDA  # 假设是CUDA设备
+#     dtype = InfiniDtype.BOOL
+    
+#     # 创建简单的测试张量
+#     # 让 a 和 b 完全相同，这样所有位置都应该返回 True
+#     a_data = torch.zeros(shape, dtype=torch.bool).cuda()  # 全是 False
+#     b_data = torch.zeros(shape, dtype=torch.bool).cuda()  # 全是 False
+    
+#     print("Input a:")
+#     print(a_data)
+#     print("Input b:")
+#     print(b_data)
+    
+#     # PyTorch 参考结果
+#     expected_result = torch.eq(a_data, b_data)
+#     print("Expected result (PyTorch):")
+#     print(expected_result)
+    
+#     # 现在测试你的库
+#     a = TestTensor(shape, None, dtype, device)
+#     b = TestTensor(shape, None, dtype, device) 
+#     c = TestTensor(shape, None, InfiniDtype.BOOL, device, mode="zeros")  # 改为zeros初始化
+    
+#     # 将我们的测试数据复制到TestTensor中
+#     a.torch_tensor().copy_(a_data)
+#     b.torch_tensor().copy_(b_data)
+    
+#     print("TestTensor a:")
+#     print(a.torch_tensor())
+#     print("TestTensor b:")
+#     print(b.torch_tensor())
+#     print("TestTensor c (before):")
+#     print(c.torch_tensor())
+    
+#     # 创建描述符
+#     handle = None  # 你需要从某个地方获取handle
+#     descriptor = infiniopOperatorDescriptor_t()
+#     check_error(
+#         LIBINFINIOP.infiniopCreateEqualDescriptor(
+#             handle,
+#             ctypes.byref(descriptor),
+#             c.descriptor,
+#             a.descriptor,
+#             b.descriptor,
+#         )
+#     )
+    
+#     # 销毁描述符中的形状信息（按照你的代码）
+#     for tensor in [a, b, c]:
+#         tensor.destroy_desc()
+    
+#     # 获取工作空间大小
+#     workspace_size = c_uint64(0)
+#     check_error(
+#         LIBINFINIOP.infiniopGetEqualWorkspaceSize(
+#             descriptor, ctypes.byref(workspace_size)
+#         )
+#     )
+#     workspace = TestWorkspace(workspace_size.value, c.device)
+    
+#     print(f"Workspace size: {workspace_size.value}")
+    
+#     # 调用你的equal函数
+#     check_error(
+#         LIBINFINIOP.infiniopEqual(
+#             descriptor,
+#             workspace.data(),
+#             workspace.size(),
+#             c.data(),
+#             a.data(),
+#             b.data(),
+#             None,
+#         )
+#     )
+    
+#     print("TestTensor c (after library call):")
+#     print(c.actual_tensor())
+    
+#     # 比较结果
+#     if torch.equal(c.actual_tensor(), expected_result):
+#         print("✅ TEST PASSED!")
+#     else:
+#         print("❌ TEST FAILED!")
+#         print("Expected:")
+#         print(expected_result)
+#         print("Got:")
+#         print(c.actual_tensor())
+        
+#         # 详细比较
+#         diff = expected_result.int() - c.actual_tensor().int()
+#         print("Difference (expected - actual):")
+#         print(diff)
+    
+#     # 清理
+#     check_error(LIBINFINIOP.infiniopDestroyEqualDescriptor(descriptor))
+
+# def debug_tensor_creation():
+#     """调试张量创建过程"""
+#     print("=== TENSOR CREATION DEBUG ===")
+    
+#     shape = (2, 2)
+#     device = InfiniDeviceEnum.CUDA
+#     dtype = InfiniDtype.BOOL
+    
+#     # 测试不同的初始化模式
+#     for mode in ["zeros", "ones", "random"]:
+#         print(f"\nTesting mode: {mode}")
+#         try:
+#             tensor = TestTensor(shape, None, dtype, device, mode=mode)
+#             print(f"  Created tensor:")
+#             print(f"  {tensor.torch_tensor()}")
+#             print(f"  Actual tensor:")
+#             print(f"  {tensor.actual_tensor()}")
+#         except Exception as e:
+#             print(f"  Error creating tensor with mode {mode}: {e}")
+
+# if __name__ == "__main__":
+#     print("Starting detailed debug...")
+    
+#     # 先测试张量创建
+#     debug_tensor_creation()
+    
+#     # 然后运行简单测试
+#     # 注意：你需要确保有正确的设备句柄
+#     # simple_test()
+    
+#     print("Debug completed.")

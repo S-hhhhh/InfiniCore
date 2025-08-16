@@ -54,31 +54,31 @@ infiniStatus_t Descriptor::calculate(
 
     switch (_dtype) {
     case INFINI_DTYPE_F16:
-        return _device_info->calculate<WhereOp, fp16_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, fp16_t, bool, fp16_t, fp16_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_F32:
-        return _device_info->calculate<WhereOp, float>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, float, bool, float, float>(_info, output, inputs, stream);
     case INFINI_DTYPE_F64:
-        return _device_info->calculate<WhereOp, double>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, double, bool, double, double>(_info, output, inputs, stream);
     case INFINI_DTYPE_BF16:
-        return _device_info->calculate<WhereOp, bf16_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, bf16_t, bool, bf16_t, bf16_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_I8:
-        return _device_info->calculate<WhereOp, int8_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, int8_t, bool, int8_t, int8_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_I16:
-        return _device_info->calculate<WhereOp, int16_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, int16_t, bool, int16_t, int16_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_I32:
-        return _device_info->calculate<WhereOp, int32_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, int32_t, bool, int32_t, int32_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_I64:
-        return _device_info->calculate<WhereOp, int64_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, int64_t, bool, int64_t, int64_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_U8:
-        return _device_info->calculate<WhereOp, uint8_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, uint8_t, bool, uint8_t, uint8_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_U16:
-        return _device_info->calculate<WhereOp, uint16_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, uint16_t, bool, uint16_t, uint16_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_U32:
-        return _device_info->calculate<WhereOp, uint32_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, uint32_t, bool, uint32_t, uint32_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_U64:
-        return _device_info->calculate<WhereOp, uint64_t>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, uint64_t, bool, uint64_t, uint64_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_BOOL:
-        return _device_info->calculate<WhereOp, bool>(_info, output, inputs, stream);
+        return _device_info->calculate<WhereOp, bool, bool, bool, bool>(_info, output, inputs, stream);
     default:
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }

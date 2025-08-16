@@ -61,31 +61,31 @@ infiniStatus_t Descriptor::calculate(
 
     switch (_dtype) {
     case INFINI_DTYPE_F16:
-        return _device_info->calculate<256, cuda::WhereOp, half>(_info, workspace, output, inputs, stream);
-    case INFINI_DTYPE_F32:
-        return _device_info->calculate<256, cuda::WhereOp, float>(_info, workspace, output, inputs, stream);
-    case INFINI_DTYPE_F64:
-        return _device_info->calculate<256, cuda::WhereOp, double>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, half, bool, half, half>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_BF16:
-        return _device_info->calculate<256, cuda::WhereOp, cuda_bfloat16>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, cuda_bfloat16, bool, cuda_bfloat16, cuda_bfloat16>(_info, workspace, output, inputs, stream);
+    case INFINI_DTYPE_F32:
+        return _device_info->calculate<256, cuda::WhereOp, float, bool, float, float>(_info, workspace, output, inputs, stream);
+    case INFINI_DTYPE_F64:
+        return _device_info->calculate<256, cuda::WhereOp, double, bool, double, double>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_I8:
-        return _device_info->calculate<256, cuda::WhereOp, int8_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, int8_t, bool, int8_t, int8_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_I16:
-        return _device_info->calculate<256, cuda::WhereOp, int16_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, int16_t, bool, int16_t, int16_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_I32:
-        return _device_info->calculate<256, cuda::WhereOp, int32_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, int32_t, bool, int32_t, int32_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_I64:
-        return _device_info->calculate<256, cuda::WhereOp, int64_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, int64_t, bool, int64_t, int64_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_U8:
-        return _device_info->calculate<256, cuda::WhereOp, uint8_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, uint8_t, bool, uint8_t, uint8_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_U16:
-        return _device_info->calculate<256, cuda::WhereOp, uint16_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, uint16_t, bool, uint16_t, uint16_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_U32:
-        return _device_info->calculate<256, cuda::WhereOp, uint32_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, uint32_t, bool, uint32_t, uint32_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_U64:
-        return _device_info->calculate<256, cuda::WhereOp, uint64_t>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, uint64_t, bool, uint64_t, uint64_t>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_BOOL:
-        return _device_info->calculate<256, cuda::WhereOp, bool>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::WhereOp, bool, bool, bool, bool>(_info, workspace, output, inputs, stream);
     default:
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }

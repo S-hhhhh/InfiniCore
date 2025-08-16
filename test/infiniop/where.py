@@ -1,10 +1,6 @@
-#!/usr/bin/env python3
-
 import torch
 import ctypes
 from ctypes import c_uint64
-from enum import Enum, auto
-
 from libinfiniop import (
     LIBINFINIOP,
     TestTensor,
@@ -21,42 +17,86 @@ from libinfiniop import (
     InfiniDeviceNames,
     infiniopOperatorDescriptor_t,
 )
+from enum import Enum, auto
 
 # ==============================================================================
 #  Configuration (Internal Use Only)
 # ==============================================================================
-# 用例格式： (shape, a_stride, b_stride, c_stride, cond_stride)
+# These are not meant to be imported from other modules
 _TEST_CASES_ = [
-    # 基本形状
+    # shape, condition_stride, a_stride, b_stride, c_stride
+    # 基本形状测试
     ((10,), None, None, None, None),
     ((5, 10), None, None, None, None),
     ((2, 3, 4), None, None, None, None),
-
-    # 边界/较大形状
-    ((1, 1), None, None, None, None),
-    ((7, 13), None, None, None, None),
-    ((3, 5, 7), None, None, None, None),
-    ((32, 256, 112, 112), None, None, None, None),
-
-    # 如需覆盖非常规 stride，请确保内核支持后再放开
-    # ((5, 10), (10, 2), None, (10, 2), None),
-    # ((4, 6, 8), None, (48, 8, 1), (48, 8, 1), None),
+    ((4, 5, 6), None, None, None, None),
+    
+    # 不同步长测试
+    ((10, 10), (10, 1), None, None, None),
+    ((10, 10), None, (10, 1), None, None),
+    ((10, 10), None, None, (10, 1), None),
+    ((10, 10), None, None, None, (10, 1)),
+    
+    # 奇怪形状测试
+    ((7, 13), None, None, None, None),  # 质数维度
+    ((3, 5, 7), None, None, None, None),  # 三维质数
+    ((11, 17, 23), None, None, None, None),  # 更大质数
+    
+    # 非标准形状测试
+    ((1, 1), None, None, None, None),  # 最小形状
+    ((1, 100), None, None, None, None),  # 单行
+    ((100, 1), None, None, None, None),  # 单列
+    ((64, 64), None, None, None, None),  # 2的幂次
+    ((16, 16, 16), None, None, None, None),  # 三维2的幂次
+    
+    # 大形状测试
+    ((100, 100), None, None, None, None),
+    ((32, 32, 32), None, None, None, None),
+    
+    # 广播测试 - 这些会被跳过，但保留作为潜在的扩展
+    ((10,), (0,), None, None, None),  # 广播condition
+    ((5, 10), None, (0, 1), None, None),  # 广播a
+    ((5, 10), None, None, (0, 1), None),  # 广播b
 ]
 
-_TENSOR_DTYPES = [InfiniDtype.F16, InfiniDtype.F32, InfiniDtype.BF16]
+
+# 暂时只测试浮点类型，确认逻辑正确后再扩展到整数类型
+_TENSOR_DTYPES = [
+    InfiniDtype.F16, InfiniDtype.F32, InfiniDtype.F64, InfiniDtype.BF16,
+    InfiniDtype.I8, InfiniDtype.I16, InfiniDtype.I32, InfiniDtype.I64,
+    # InfiniDtype.U8, InfiniDtype.U16, InfiniDtype.U32, InfiniDtype.U64,
+    InfiniDtype.BOOL
+]
+
 
 _TOLERANCE_MAP = {
     InfiniDtype.F16: {"atol": 1e-3, "rtol": 1e-3},
     InfiniDtype.F32: {"atol": 1e-7, "rtol": 1e-6},
+    InfiniDtype.F64: {"atol": 1e-15, "rtol": 1e-14},
     InfiniDtype.BF16: {"atol": 1e-3, "rtol": 1e-3},
+    InfiniDtype.I8: {"atol": 0, "rtol": 0},
+    InfiniDtype.I16: {"atol": 0, "rtol": 0},
+    InfiniDtype.I32: {"atol": 0, "rtol": 0},
+    InfiniDtype.I64: {"atol": 0, "rtol": 0},
+    InfiniDtype.U8: {"atol": 0, "rtol": 0},
+    InfiniDtype.U16: {"atol": 0, "rtol": 0},
+    InfiniDtype.U32: {"atol": 0, "rtol": 0},
+    InfiniDtype.U64: {"atol": 0, "rtol": 0},
+    InfiniDtype.BOOL: {"atol": 0, "rtol": 0},
 }
+
 
 class Inplace(Enum):
     OUT_OF_PLACE = auto()
-    INPLACE_A = auto()  # 输出 c 复用 a
-    INPLACE_B = auto()  # 输出 c 复用 b
+    INPLACE_A = auto()
+    INPLACE_B = auto()
 
-_INPLACE = [Inplace.OUT_OF_PLACE, Inplace.INPLACE_A, Inplace.INPLACE_B]
+
+_INPLACE = [
+    Inplace.INPLACE_A,
+    Inplace.INPLACE_B,
+    Inplace.OUT_OF_PLACE,
+]
 
 _TEST_CASES = [
     test_case + (inplace_item,)
@@ -70,83 +110,43 @@ NUM_PRERUN = 10
 NUM_ITERATIONS = 1000
 
 
-def where_ref(c_torch, a_torch, b_torch, cond_bool_torch):
-    """
-    PyTorch 参考实现：c = torch.where(condition, a, b)
-    写入到 c_torch（与 TestTensor.c 绑定）
-    """
-    out = torch.where(cond_bool_torch, a_torch, b_torch)
-    with torch.no_grad():
-        c_torch.copy_(out)
-
-
-def _pick_condition_dtype():
-    """
-    选择框架中的布尔 dtype。若枚举名不同请在此调整：
-      - 优先用 InfiniDtype.BOOL
-      - 若没有，可改为实际可用的布尔枚举（如 BOOL8）
-    """
-    if hasattr(InfiniDtype, "BOOL"):
-        return InfiniDtype.BOOL
-    # 如果项目里布尔枚举叫 BOOL8 / U1 等，请解除下面的注释并替换
-    # elif hasattr(InfiniDtype, "BOOL8"):
-    #     return InfiniDtype.BOOL8
-    # 否则抛出异常，提示去 utils.to_torch_dtype 补映射
-    raise RuntimeError(
-        "No boolean dtype found in InfiniDtype. "
-        "Please add a BOOL-like enum (e.g., BOOL / BOOL8) and map it to torch.bool in to_torch_dtype."
-    )
+def where(c, condition, a, b):
+    """Where operation: c[i] = condition[i] ? a[i] : b[i]"""
+    result = torch.where(condition, a, b)
+    c.copy_(result)
 
 
 def test(
     handle,
     device,
     shape,
+    condition_stride=None,
     a_stride=None,
     b_stride=None,
     c_stride=None,
-    cond_stride=None,
     inplace=Inplace.OUT_OF_PLACE,
     dtype=InfiniDtype.F32,
     sync=None,
 ):
-    # a, b, c 的 dtype 必须一致
-    a = TestTensor(shape, a_stride, dtype, device, mode="random", scale=4.0, bias=-2.0)
-    b = TestTensor(shape, b_stride, dtype, device, mode="random", scale=4.0, bias=-2.0)
-
-    # condition: 布尔张量
-    # cond_bool = (torch.rand(shape) > 0.5)
-    # cond_dtype = _pick_condition_dtype()
-    # condition = TestTensor(
-    #     shape,
-    #     cond_bool.stride() if cond_stride is None else cond_stride,
-    #     cond_dtype,
-    #     device,
-    #     mode="manual",
-    #     set_tensor=cond_bool.to(torch.bool),
-    # )
-        # 生成布尔条件（用于 PyTorch 参考）
-    cond_bool = (torch.rand(shape) > 0.5)
-
-    # 用与 a/b/c 相同的数据类型，构造 0/1 蒙版，避免 BOOL dtype 的映射问题
-    if dtype == InfiniDtype.F16:
-        cond_mask = cond_bool.to(torch.float16)
-    elif dtype == InfiniDtype.BF16:
-        cond_mask = cond_bool.to(torch.bfloat16)
+    # Create condition tensor (always bool)
+    condition = TestTensor(shape, condition_stride, InfiniDtype.BOOL, device)
+    
+    # Create input tensors a and b with specified dtype
+    # For unsigned integer types, we need to be careful about random generation
+    if dtype in [InfiniDtype.U8, InfiniDtype.U16, InfiniDtype.U32, InfiniDtype.U64]:
+        # Use a smaller range for unsigned types to avoid overflow
+        a = TestTensor(shape, a_stride, dtype, device, mode="random", scale=10, bias=0)
+        b = TestTensor(shape, b_stride, dtype, device, mode="random", scale=10, bias=0)
+    elif dtype in [InfiniDtype.I8, InfiniDtype.I16, InfiniDtype.I32, InfiniDtype.I64]:
+        # Use a reasonable range for signed integer types
+        a = TestTensor(shape, a_stride, dtype, device, mode="random", scale=100, bias=-50)
+        b = TestTensor(shape, b_stride, dtype, device, mode="random", scale=100, bias=-50)
     else:
-        cond_mask = cond_bool.to(torch.float32)
+        # For floating point and bool types, use default random generation
+        a = TestTensor(shape, a_stride, dtype, device)
+        b = TestTensor(shape, b_stride, dtype, device)
 
-    condition = TestTensor(
-        shape,
-        cond_mask.stride() if cond_stride is None else cond_stride,
-        dtype,                 # 重点：用 a/b/c 的 dtype，而不是 BOOL
-        device,
-        mode="manual",
-        set_tensor=cond_mask,
-    )
-
-
-    # 输出 c：根据 inplace 复用 a 或 b 的缓冲区；stride 不匹配则跳过该 case
+    # Handle inplace operations
     if inplace == Inplace.INPLACE_A:
         if a_stride != c_stride:
             return
@@ -158,35 +158,40 @@ def test(
     else:
         c = TestTensor(shape, c_stride, dtype, device)
 
-    if c.is_broadcast():
+    # Skip broadcast cases for now
+    if c.is_broadcast() or condition.is_broadcast() or a.is_broadcast() or b.is_broadcast():
         return
 
     print(
         f"Testing Where on {InfiniDeviceNames[device]} with shape:{shape} "
-        f"a_stride:{a_stride} b_stride:{b_stride} c_stride:{c_stride} cond_stride:{cond_stride} "
+        f"condition_stride:{condition_stride} a_stride:{a_stride} b_stride:{b_stride} c_stride:{c_stride} "
         f"dtype:{InfiniDtypeNames[dtype]} inplace:{inplace}"
     )
 
-    # PyTorch 参考（写入 c.torch_tensor）
-    where_ref(c.torch_tensor(), a.torch_tensor(), b.torch_tensor(), cond_bool)
+    # Compute reference result using PyTorch
+    where(c.torch_tensor(), condition.torch_tensor(), a.torch_tensor(), b.torch_tensor())
 
     if sync is not None:
         sync()
 
-    # ===== 描述子创建（顺序：c, condition, a, b）=====
+    # Store expected result before library operation
+    expected_result = c.torch_tensor().clone()
+
+    # Create descriptor
     descriptor = infiniopOperatorDescriptor_t()
+
     check_error(
         LIBINFINIOP.infiniopCreateWhereDescriptor(
             handle,
             ctypes.byref(descriptor),
-            c.descriptor,            # output first
-            condition.descriptor,    # condition second (BOOL)
+            c.descriptor,
+            condition.descriptor,
             a.descriptor,
             b.descriptor,
         )
     )
 
-    # Workspace
+    # Get workspace size
     workspace_size = c_uint64(0)
     check_error(
         LIBINFINIOP.infiniopGetWhereWorkspaceSize(
@@ -196,46 +201,66 @@ def test(
     workspace = TestWorkspace(workspace_size.value, c.device)
 
     def lib_where():
-        # ===== 执行顺序也为：c, condition, a, b =====
         check_error(
             LIBINFINIOP.infiniopWhere(
                 descriptor,
                 workspace.data() if workspace is not None else None,
                 workspace_size.value,
-                c.data(),             # output first
-                condition.data(),     # condition second
+                c.data(),
+                condition.data(),
                 a.data(),
                 b.data(),
                 None,
             )
         )
 
-    # 运行库实现
+    # Execute library operation
     lib_where()
 
-    # 校验
+    # Destroy the tensor descriptors
+    for tensor in [condition, a, b, c]:
+        tensor.destroy_desc()
+
+    # Check results with better error reporting
     atol, rtol = get_tolerance(_TOLERANCE_MAP, dtype)
-    if DEBUG and c.actual_tensor().numel() > 0:
-        max_diff = (c.actual_tensor() - c.torch_tensor()).abs().max().item()
-        print("max |diff| =", max_diff)
-        debug(c.actual_tensor(), c.torch_tensor(), atol=atol, rtol=rtol)
+    
+    # # Always print debug info for failed cases
+    # print(f"Condition values: {condition.torch_tensor().flatten()[:10]}")
+    # print(f"A values: {a.torch_tensor().flatten()[:10]}")
+    # print(f"B values: {b.torch_tensor().flatten()[:10]}")
+    # print(f"Expected result: {expected_result.flatten()[:10]}")
+    # print(f"Actual result: {c.actual_tensor().flatten()[:10]}")
+    
+    # if DEBUG:
+    #     print(f"Expected result shape: {expected_result.shape}")
+    #     print(f"Actual result shape: {c.actual_tensor().shape}")
+    #     print(f"Expected result dtype: {expected_result.dtype}")
+    #     print(f"Actual result dtype: {c.actual_tensor().dtype}")
+    #     debug(c.actual_tensor(), expected_result, atol=atol, rtol=rtol)
+    
+    # Use torch.equal for exact comparison for integer and boolean types
+    if dtype in [InfiniDtype.I8, InfiniDtype.I16, InfiniDtype.I32, InfiniDtype.I64,
+                 InfiniDtype.U8, InfiniDtype.U16, InfiniDtype.U32, InfiniDtype.U64,
+                 InfiniDtype.BOOL]:
+        if not torch.equal(c.actual_tensor(), expected_result):
+            print(f"Exact comparison failed for {InfiniDtypeNames[dtype]}")
+            print(f"Max absolute difference: {torch.max(torch.abs(c.actual_tensor() - expected_result))}")
+            assert False, f"Results don't match exactly for {InfiniDtypeNames[dtype]}"
+    else:
+        if not torch.allclose(c.actual_tensor(), expected_result, atol=atol, rtol=rtol):
+            print(f"Tolerance comparison failed for {InfiniDtypeNames[dtype]}")
+            print(f"Max absolute difference: {torch.max(torch.abs(c.actual_tensor() - expected_result))}")
+            print(f"Tolerance: atol={atol}, rtol={rtol}")
+            assert False, f"Results don't match within tolerance for {InfiniDtypeNames[dtype]}"
 
-    assert torch.allclose(c.actual_tensor(), c.torch_tensor(), atol=atol, rtol=rtol)
-
-    # Profiling（可选）
+    # Profiling workflow
     if PROFILE:
-        profile_operation(
-            "PyTorch",
-            lambda: where_ref(c.torch_tensor(), a.torch_tensor(), b.torch_tensor(), cond_bool),
-            device, NUM_PRERUN, NUM_ITERATIONS
-        )
-        profile_operation(
-            "    lib",
-            lambda: lib_where(),
-            device, NUM_PRERUN, NUM_ITERATIONS
-        )
+        # fmt: off
+        profile_operation("PyTorch", lambda: where(c.torch_tensor(), condition.torch_tensor(), a.torch_tensor(), b.torch_tensor()), device, NUM_PRERUN, NUM_ITERATIONS)
+        profile_operation("    lib", lambda: lib_where(), device, NUM_PRERUN, NUM_ITERATIONS)
+        # fmt: on
 
-    # 释放描述子
+    # Clean up
     check_error(LIBINFINIOP.infiniopDestroyWhereDescriptor(descriptor))
 
 

@@ -12,9 +12,9 @@ typedef struct WhereOp {
 public:
     static constexpr size_t num_inputs = 3;
 
-    template <typename T>
-    T operator()(const bool &condition, const T &a, const T &b) const {
-        return condition ? a : b;
+    template <typename T, typename Tcond, typename Ta, typename Tb>
+    T operator()(const Tcond &cond, const Ta &a, const Tb &b) const {
+        return static_cast<T>(static_cast<bool>(cond) ? a : b); 
     }
 } WhereOp;
 
