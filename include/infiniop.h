@@ -25,7 +25,6 @@
 #include "infiniop/ops/relu_backward.h"
 #include "infiniop/ops/gelu_backward.h"
 #include "infiniop/ops/sigmoid_backward.h"
-// #include "infiniop/ops/crossentropyloss_backward.h"
 #include "infiniop/ops/where.h"
 #include "infiniop/ops/gelu.h"
 #include "infiniop/ops/silu.h"

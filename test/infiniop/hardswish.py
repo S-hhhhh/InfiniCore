@@ -67,13 +67,15 @@ PROFILE = False
 NUM_PRERUN = 10
 NUM_ITERATIONS = 1000
 
+_hswish = torch.nn.Hardswish(inplace=False)
+
 def hardswish(x):
     """
     Reference HardSwish using PyTorch:
       hswish(x) = x * clamp(x + 3, 0, 6) / 6
     """
-    return torch.nn.functional.hardswish(x).to(x.dtype)
-    # return torch.nn.Hardswish(x).to(x.dtype)
+    # return torch.nn.functional.hardswish(x).to(x.dtype)
+    return _hswish(x).to(x.dtype)
 
 def test(
     handle, device, shape, inplace=Inplace.OUT_OF_PLACE, dtype=torch.float16, sync=None

@@ -18,6 +18,20 @@ DECLARE_INFINIOP_TEST(rearrange)
 DECLARE_INFINIOP_TEST(sub)
 DECLARE_INFINIOP_TEST(div)
 DECLARE_INFINIOP_TEST(reduce_mean)
+DECLARE_INFINIOP_TEST(logical_and)
+DECLARE_INFINIOP_TEST(logical_or)
+DECLARE_INFINIOP_TEST(equal)
+DECLARE_INFINIOP_TEST(relu_backward)
+DECLARE_INFINIOP_TEST(gelu_backward)
+DECLARE_INFINIOP_TEST(sigmoid_backward)
+DECLARE_INFINIOP_TEST(where)
+DECLARE_INFINIOP_TEST(gelu)
+DECLARE_INFINIOP_TEST(silu)
+DECLARE_INFINIOP_TEST(exp)
+DECLARE_INFINIOP_TEST(sin)
+DECLARE_INFINIOP_TEST(cos)
+DECLARE_INFINIOP_TEST(tanh)
+DECLARE_INFINIOP_TEST(hardswish)
 
 #define REGISTER_INFINIOP_TEST(name)                      \
     {                                                     \
@@ -47,6 +61,20 @@ DECLARE_INFINIOP_TEST(reduce_mean)
         REGISTER_INFINIOP_TEST(sub)            \
         REGISTER_INFINIOP_TEST(div)            \
         REGISTER_INFINIOP_TEST(reduce_mean)    \
+        REGISTER_INFINIOP_TEST(logical_and)    \
+        REGISTER_INFINIOP_TEST(logical_or)     \
+        REGISTER_INFINIOP_TEST(equal)          \
+        REGISTER_INFINIOP_TEST(relu_backward)  \
+        REGISTER_INFINIOP_TEST(gelu_backward)  \
+        REGISTER_INFINIOP_TEST(sigmoid_backward)\
+        REGISTER_INFINIOP_TEST(where)          \
+        REGISTER_INFINIOP_TEST(gelu)           \
+        REGISTER_INFINIOP_TEST(silu)           \
+        REGISTER_INFINIOP_TEST(exp)            \
+        REGISTER_INFINIOP_TEST(sin)            \
+        REGISTER_INFINIOP_TEST(cos)            \
+        REGISTER_INFINIOP_TEST(tanh)           \
+        REGISTER_INFINIOP_TEST(hardswish)      \
     }
 
 namespace infiniop_test {
