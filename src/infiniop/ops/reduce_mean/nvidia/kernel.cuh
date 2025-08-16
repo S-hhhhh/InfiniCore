@@ -15,12 +15,13 @@ __device__ void ReduceMeanKernel(
     __shared__ Tcompute mean_;
     Tcompute sum_0 = op::common_cuda::reduce_op::sum<BLOCK_SIZE, Tdata, Tcompute>(x, width, x_stride_w);
     if (threadIdx.x == 0) {
-        mean_ = sum_0/width;
+        // mean_ = sum_0/width;
+        *y = sum_0/width;
     }
-    __syncthreads();
+    // __syncthreads();
 
     // [Elementwise] Divide each element by the sum and store in shared memory
-    *y = mean_;
+    // *y = mean_;
 }
 
 #endif // __REDUCE_MEAN_KERNEL_CUH__

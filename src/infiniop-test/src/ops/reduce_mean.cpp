@@ -6,8 +6,8 @@
 
 namespace infiniop_test::reduce_mean {
 struct Test::Attributes {
-    std::shared_ptr<Tensor> x;
-    std::shared_ptr<Tensor> y;
+    std::shared_ptr<Tensor> input;
+    std::shared_ptr<Tensor> output;
     std::shared_ptr<Tensor> ans;
     size_t dim;
 };
@@ -20,16 +20,17 @@ std::shared_ptr<Test> Test::build(
     test->_attributes = new Attributes();
 
     if (attributes.find("dim") == attributes.end()
-        || tensors.find("x") == tensors.end()
+        || tensors.find("input") == tensors.end()
         || tensors.find("ans") == tensors.end()
-        || tensors.find("y") == tensors.end()) {
+        || tensors.find("output") == tensors.end()) {
+        std::cout << "所有的键：" << std::endl;
         throw std::runtime_error("Invalid Test: Missing attributes or tensors");
     }
 
     test->_attributes->dim = size_t(*reinterpret_cast<uint64_t *>(attributes["dim"].data()));
     test->_attributes->ans = tensors["ans"];
-    test->_attributes->x = tensors["x"];
-    test->_attributes->y = tensors["y"];
+    test->_attributes->input = tensors["input"];
+    test->_attributes->output = tensors["output"];
 
     return test;
 }
@@ -40,13 +41,13 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 
     infiniopReduceMeanDescriptor_t op_desc;
     CHECK_OR(infiniopCreateReduceMeanDescriptor(handle, &op_desc,
-                                             _attributes->y->desc(),
-                                             _attributes->x->desc(),
+                                             _attributes->output->desc(),
+                                             _attributes->input->desc(),
                                              _attributes->dim),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to create ReduceMean descriptor"));
 
-    auto x = _attributes->x->to(device, device_id);
-    auto y = _attributes->y->to(device, device_id);
+    auto input = _attributes->input->to(device, device_id);
+    auto output = _attributes->output->to(device, device_id);
 
     size_t workspace_size;
     CHECK_OR(infiniopGetReduceMeanWorkspaceSize(op_desc, &workspace_size),
@@ -59,13 +60,13 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 
     CHECK_OR(infiniopReduceMean(op_desc,
                              workspace, workspace_size,
-                             y->data(),
-                             x->data(),
+                             output->data(),
+                             input->data(),
                              nullptr),
              return TEST_FAILED(OP_EXECUTION_FAILED, "ReduceMean execution failed"));
 
     try {
-        allClose(y, _attributes->ans, _rtol, _atol, _equal_nan);
+        allClose(output, _attributes->ans, _rtol, _atol, _equal_nan);
     } catch (const std::exception &e) {
         return TEST_FAILED(RESULT_INCORRECT, e.what());
     }
@@ -76,8 +77,8 @@ std::shared_ptr<infiniop_test::Result> Test::run(
         [=]() {
             infiniopReduceMean(op_desc,
                             workspace, workspace_size,
-                            y->data(),
-                            x->data(),
+                            output->data(),
+                            input->data(),
                             nullptr);
         },
         warm_ups, iterations);
@@ -94,18 +95,18 @@ std::vector<std::string> Test::attribute_names() {
 }
 
 std::vector<std::string> Test::tensor_names() {
-    return {"x", "ans", "y"};
+    return {"input", "ans", "output"};
 }
 
 std::vector<std::string> Test::output_names() {
-    return {"y"};
+    return {"output"};
 }
 
 std::string Test::toString() const {
     std::ostringstream oss;
     oss << op_name() << std::endl;
-    oss << "- x: " << _attributes->x->info() << std::endl;
-    oss << "- y: " << _attributes->y->info() << std::endl;
+    oss << "- input: " << _attributes->input->info() << std::endl;
+    oss << "- output: " << _attributes->output->info() << std::endl;
     oss << "- dim=" << _attributes->dim << std::endl;
     oss << std::scientific << std::setprecision(2);
     oss << "- rtol=" << _rtol << ", atol=" << _atol << ", equal_nan=" << _equal_nan << std::endl;
