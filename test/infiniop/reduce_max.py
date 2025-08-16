@@ -21,7 +21,7 @@ from libinfiniop import (
 # ==============================================================================
 #  Configuration (Internal Use Only)
 # ==============================================================================
-# These are not meant to be imported from other modules
+# These are not maxt to be imported from other modules
 _TEST_CASES_ = [
     # y_shape, x_shape, y_stride, x_stride, dim
     ((), (), None, None, 0),
@@ -55,8 +55,8 @@ NUM_PRERUN = 10
 NUM_ITERATIONS = 1000
 
 
-def reduce_mean(x, dim):
-    return x.mean(dim=dim,keepdim=True)
+def reduce_max(x, dim):
+    return x.max(dim=dim,keepdim=True)[0]
 
 
 def test(
@@ -71,13 +71,13 @@ def test(
     sync=None,
 ):
     print(
-        f"Testing Reduce_Mean on {InfiniDeviceNames[device]} with y_shape:{y_shape} x_shape:{x_shape}"
+        f"Testing Reduce_Max on {InfiniDeviceNames[device]} with y_shape:{y_shape} x_shape:{x_shape}"
         f" y_stride:{y_stride} x_stride:{x_stride} dim:{dim} dtype:{InfiniDtypeNames[dtype]}"
     )
 
     x = TestTensor(x_shape, x_stride, dtype, device)
-    ans = reduce_mean(x.torch_tensor(), dim)
-
+    ans = reduce_max(x.torch_tensor(), dim)
+    
     y = TestTensor(y_shape, y_stride, dtype, device)
 
     if sync is not None:
@@ -85,7 +85,7 @@ def test(
 
     descriptor = infiniopOperatorDescriptor_t()
     check_error(
-        LIBINFINIOP.infiniopCreateReduceMeanDescriptor(
+        LIBINFINIOP.infiniopCreateReduceMaxDescriptor(
             handle, ctypes.byref(descriptor), y.descriptor, x.descriptor, ctypes.c_size_t(dim)
         )
     )
@@ -96,15 +96,15 @@ def test(
 
     workspace_size = c_uint64(0)
     check_error(
-        LIBINFINIOP.infiniopGetReduceMeanWorkspaceSize(
+        LIBINFINIOP.infiniopGetReduceMaxWorkspaceSize(
             descriptor, ctypes.byref(workspace_size)
         )
     )
     workspace = TestWorkspace(workspace_size.value, x.device)
 
-    def lib_reduce_mean():
+    def lib_reduce_max():
         check_error(
-            LIBINFINIOP.infiniopReduceMean(
+            LIBINFINIOP.infiniopReduceMax(
                 descriptor,
                 workspace.data(),
                 workspace_size.value,
@@ -114,7 +114,7 @@ def test(
             )
         )
 
-    lib_reduce_mean()
+    lib_reduce_max()
 
     if sync is not None:
         sync()
@@ -131,7 +131,7 @@ def test(
         profile_operation("    lib", lambda: lib_causal_softmax(), device, NUM_PRERUN, NUM_ITERATIONS)
         # fmt: on
 
-    check_error(LIBINFINIOP.infiniopDestroyReduceMeanDescriptor(descriptor))
+    check_error(LIBINFINIOP.infiniopDestroyReduceMaxDescriptor(descriptor))
 
 
 if __name__ == "__main__":

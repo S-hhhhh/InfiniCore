@@ -7,17 +7,17 @@ from enum import Enum, auto
 from .. import InfiniopTestWriter, InfiniopTestCase, np_dtype_to_ggml, gguf_strides, contiguous_gguf_strides
 
 
-def reduce_mean(x, dim):
+def reduce_max(x, dim):
     if isinstance(x, np.float64):
         return x
-    return x.mean(axis=dim, keepdims=True)
+    return x.max(axis=dim, keepdims=True)
 
 
 def random_tensor(shape: tuple, dtype: np.dtype) -> np.ndarray:
     return np.random.uniform(-1.0, 1.0, shape).astype(dtype) * 0.001
 
 
-class ReduceMeanTestCase(InfiniopTestCase):
+class ReduceMaxTestCase(InfiniopTestCase):
     def __init__(
         self,
         x: np.ndarray,
@@ -28,7 +28,7 @@ class ReduceMeanTestCase(InfiniopTestCase):
         stride_y: List[int] | None,
         dim: int = 0,
     ):
-        super().__init__("reduce_mean")
+        super().__init__("reduce_max")
         self.x = x
         self.y = y
         self.shape_x=shape_x
@@ -61,7 +61,7 @@ class ReduceMeanTestCase(InfiniopTestCase):
             self.y,
             raw_dtype=np_dtype_to_ggml(self.y.dtype),
         )
-        ans = reduce_mean(
+        ans = reduce_max(
             self.x.astype(np.float64), self.dim
         )
         test_writer.add_tensor(
@@ -70,12 +70,12 @@ class ReduceMeanTestCase(InfiniopTestCase):
 
 
 if __name__ == "__main__":
-    test_writer = InfiniopTestWriter("reduce_mean.gguf")
+    test_writer = InfiniopTestWriter("reduce_max.gguf")
     test_cases = []
     # ==============================================================================
     #  Configuration
     # ==============================================================================
-    # These are not meant to be imported from other modules
+    # These are not maxt to be imported from other modules
     _TEST_CASES_ = [
     # y_shape, x_shape, y_stride, x_stride, dim
     # ((0,), (0,), (0,), (0,), 0),
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         for shape_y, shape_x, stride_y, stride_x, dim in _TEST_CASES_:
             x = random_tensor(shape_x, dtype)
             y = np.empty(tuple(0 for _ in shape_y), dtype=dtype)
-            test_case = ReduceMeanTestCase(
+            test_case = ReduceMaxTestCase(
                 x,
                 y,
                 shape_x,

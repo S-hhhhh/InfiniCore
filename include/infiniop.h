@@ -18,5 +18,6 @@
 #include "infiniop/ops/swiglu.h"
 #include "infiniop/tensor_descriptor.h"
 #include "infiniop/ops/reduce_mean.h"
+#include "infiniop/ops/reduce_max.h"
 
 #endif // __INFINIOP_API_H__

@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace infiniop_test::reduce_mean {
+namespace infiniop_test::reduce_max {
 struct Test::Attributes {
     std::shared_ptr<Tensor> input;
     std::shared_ptr<Tensor> output;
@@ -38,18 +38,18 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     infiniopHandle_t handle, infiniDevice_t device, int device_id,
     size_t warm_ups, size_t iterations) {
 
-    infiniopReduceMeanDescriptor_t op_desc;
-    CHECK_OR(infiniopCreateReduceMeanDescriptor(handle, &op_desc,
+    infiniopReduceMaxDescriptor_t op_desc;
+    CHECK_OR(infiniopCreateReduceMaxDescriptor(handle, &op_desc,
                                              _attributes->output->desc(),
                                              _attributes->input->desc(),
                                              _attributes->dim),
-             return TEST_FAILED(OP_CREATION_FAILED, "Failed to create ReduceMean descriptor"));
+             return TEST_FAILED(OP_CREATION_FAILED, "Failed to create ReduceMax descriptor"));
 
     auto input = _attributes->input->to(device, device_id);
     auto output = _attributes->output->to(device, device_id);
 
     size_t workspace_size;
-    CHECK_OR(infiniopGetReduceMeanWorkspaceSize(op_desc, &workspace_size),
+    CHECK_OR(infiniopGetReduceMaxWorkspaceSize(op_desc, &workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to get workspace size"));
     void *workspace = nullptr;
     if (workspace_size > 0) {
@@ -57,12 +57,12 @@ std::shared_ptr<infiniop_test::Result> Test::run(
                  return TEST_FAILED(OP_CREATION_FAILED, "Failed to allocate workspace"));
     }
 
-    CHECK_OR(infiniopReduceMean(op_desc,
+    CHECK_OR(infiniopReduceMax(op_desc,
                              workspace, workspace_size,
                              output->data(),
                              input->data(),
                              nullptr),
-             return TEST_FAILED(OP_EXECUTION_FAILED, "ReduceMean execution failed"));
+             return TEST_FAILED(OP_EXECUTION_FAILED, "ReduceMax execution failed"));
 
     try {
         allClose(output, _attributes->ans, _rtol, _atol, _equal_nan);
@@ -74,7 +74,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 
     elapsed_time = benchmark(
         [=]() {
-            infiniopReduceMean(op_desc,
+            infiniopReduceMax(op_desc,
                             workspace, workspace_size,
                             output->data(),
                             input->data(),
@@ -116,4 +116,4 @@ Test::~Test() {
     delete _attributes;
 }
 
-} // namespace infiniop_test::reduce_mean
+} // namespace infiniop_test::reduce_max

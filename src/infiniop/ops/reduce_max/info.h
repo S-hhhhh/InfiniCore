@@ -1,14 +1,14 @@
-﻿#ifndef __REDUCE_MEAN_INFO_H__
-#define __REDUCE_MEAN_INFO_H__
+﻿#ifndef __REDUCE_MAX_INFO_H__
+#define __REDUCE_MAX_INFO_H__
 
 #include "../../../utils.h"
 #include "../../tensor.h"
 #include <vector>
 
-namespace op::reduce_mean {
+namespace op::reduce_max {
 
-class ReduceMeanInfo {
-    ReduceMeanInfo() = default;
+class ReduceMaxInfo {
+    ReduceMaxInfo() = default;
 
 public:
     infiniDtype_t dtype;
@@ -17,7 +17,7 @@ public:
     std::vector<ptrdiff_t> y_strides;
     std::vector<ptrdiff_t> x_strides;
 
-    static utils::Result<ReduceMeanInfo> create(infiniopTensorDescriptor_t y_desc, infiniopTensorDescriptor_t x_desc, size_t dim) {
+    static utils::Result<ReduceMaxInfo> create(infiniopTensorDescriptor_t y_desc, infiniopTensorDescriptor_t x_desc, size_t dim) {
         auto dtype = y_desc->dtype();
         if (dtype != x_desc->dtype()) {
             return INFINI_STATUS_BAD_TENSOR_DTYPE;
@@ -34,7 +34,7 @@ public:
             std::vector<size_t> shape = {1, 1, 1, 1};
             std::vector<ptrdiff_t> y_strides = {0, 0, 0, 0};
             std::vector<ptrdiff_t> x_strides = {0, 0, 0, 0};
-            return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
+            return utils::Result<ReduceMaxInfo>(ReduceMaxInfo{
                 dtype, shape, y_strides, x_strides});
         }
         else{
@@ -51,12 +51,12 @@ public:
                 y_strides.insert(y_strides.begin(), 0);
                 x_strides.insert(x_strides.begin(), 0);
             }
-            return utils::Result<ReduceMeanInfo>(ReduceMeanInfo{
+            return utils::Result<ReduceMaxInfo>(ReduceMaxInfo{
                 dtype, shape, y_strides, x_strides});
         }
     }
 };
 
-} // namespace op::reduce_mean
+} // namespace op::reduce_max
 
-#endif // __REDUCE_MEAN_INFO_H__
+#endif // __REDUCE_MAX_INFO_H__
