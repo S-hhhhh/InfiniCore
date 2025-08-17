@@ -12,7 +12,6 @@ __device__ void ReduceMeanKernel(
     const Tdata *x = x_ + blockIdx.x * x_stride_b + blockIdx.y * x_stride_c + blockIdx.z * x_stride_h;
 
     // [Reduce] Find the sum of each updated row and store in shared memory
-    __shared__ Tcompute mean_;
     Tcompute sum_0 = op::common_cuda::reduce_op::sum<BLOCK_SIZE, Tdata, Tcompute>(x, width, x_stride_w);
     if (threadIdx.x == 0) {
         // mean_ = sum_0/width;
