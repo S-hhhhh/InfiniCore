@@ -17,6 +17,13 @@ DECLARE_INFINIOP_TEST(causal_softmax)
 DECLARE_INFINIOP_TEST(rearrange)
 DECLARE_INFINIOP_TEST(sub)
 DECLARE_INFINIOP_TEST(div)
+DECLARE_INFINIOP_TEST(silu)
+DECLARE_INFINIOP_TEST(logical_and)
+DECLARE_INFINIOP_TEST(logical_or)
+DECLARE_INFINIOP_TEST(equal)
+DECLARE_INFINIOP_TEST(relu_backward)
+DECLARE_INFINIOP_TEST(gelu)
+DECLARE_INFINIOP_TEST(gelu_backward)
 
 #define REGISTER_INFINIOP_TEST(name)                      \
     {                                                     \
@@ -45,6 +52,13 @@ DECLARE_INFINIOP_TEST(div)
         REGISTER_INFINIOP_TEST(rearrange)      \
         REGISTER_INFINIOP_TEST(sub)            \
         REGISTER_INFINIOP_TEST(div)            \
+        REGISTER_INFINIOP_TEST(silu)           \
+        REGISTER_INFINIOP_TEST(logical_and)    \
+        REGISTER_INFINIOP_TEST(logical_or)     \
+        REGISTER_INFINIOP_TEST(equal)          \
+        REGISTER_INFINIOP_TEST(relu_backward)  \
+        REGISTER_INFINIOP_TEST(gelu)           \
+        REGISTER_INFINIOP_TEST(gelu_backward)  \
     }
 
 namespace infiniop_test {

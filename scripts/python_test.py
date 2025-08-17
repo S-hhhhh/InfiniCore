@@ -25,6 +25,13 @@ def run_tests(args):
         "sub.py",
         "swiglu.py",
         "div.py",
+        "silu.py",
+        "and.py",
+        "or.py",
+        "equal.py",
+        "relu_backward.py",
+        "gelu.py",
+        "gelu_backward.py",
     ]:
         result = subprocess.run(
             f"python {test} {args} --debug", text=True, encoding="utf-8", shell=True
