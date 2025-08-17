@@ -13,9 +13,11 @@ struct CustomBFloat16 {
 };
 typedef struct CustomBFloat16 bf16_t;
 
+bool _f16_to_bool(fp16_t val);
 float _f16_to_f32(fp16_t val);
 fp16_t _f32_to_f16(float val);
 
+bool _bf16_to_bool(bf16_t val);
 float _bf16_to_f32(bf16_t val);
 bf16_t _f32_to_bf16(float val);
 
