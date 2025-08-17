@@ -17,5 +17,12 @@
 #include "infiniop/ops/sub.h"
 #include "infiniop/ops/swiglu.h"
 #include "infiniop/tensor_descriptor.h"
+#include "infiniop/ops/exp.h"
+#include "infiniop/ops/sin.h"
+#include "infiniop/ops/cos.h"
+#include "infiniop/ops/tanh.h"
+#include "infiniop/ops/sigmoid_backward.h"
+#include "infiniop/ops/hardswish.h"
+#include "infiniop/ops/where.h"
 
 #endif // __INFINIOP_API_H__

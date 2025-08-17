@@ -24,6 +24,13 @@ def run_tests(args):
         "rope.py",
         "sub.py",
         "swiglu.py",
+        "exp.py",
+        "sin.py",
+        "cos.py",
+        "tanh.py",
+        "sigmoid_backward.py",
+        "hardswish.py",
+        "where.py",
     ]:
         result = subprocess.run(
             f"python {test} {args} --debug", text=True, encoding="utf-8", shell=True
