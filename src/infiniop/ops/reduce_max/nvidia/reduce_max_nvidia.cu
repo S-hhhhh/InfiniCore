@@ -84,12 +84,14 @@ infiniStatus_t Descriptor::calculate(void *workspace, size_t workspace_size,
             _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], _info.x_strides[3], stream));
     } else if (_opaque->internal->maxThreadsPerBlock() == CUDA_BLOCK_SIZE_512) {
         CHECK_STATUS(launchKernel<CUDA_BLOCK_SIZE_512>(
-            y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2],
-            _info.y_strides[0], _info.y_strides[1], _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], stream));
+            y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2], _info.shape[3],
+            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2], 
+            _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], _info.x_strides[3], stream));
     } else if (_opaque->internal->maxThreadsPerBlock() == CUDA_BLOCK_SIZE_4096) {
         CHECK_STATUS(launchKernel<CUDA_BLOCK_SIZE_4096>(
-            y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2],
-            _info.y_strides[0], _info.y_strides[1], _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], stream));
+            y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2], _info.shape[3],
+            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2], 
+            _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], _info.x_strides[3], stream));
     } else {
         return INFINI_STATUS_DEVICE_ARCHITECTURE_NOT_SUPPORTED;
     }
