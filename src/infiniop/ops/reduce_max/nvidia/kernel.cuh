@@ -12,7 +12,6 @@ __device__ void ReduceMaxKernel(
     const Tdata *x = x_ + blockIdx.x * x_stride_b + blockIdx.y * x_stride_c + blockIdx.z * x_stride_h;
 
     // [Reduce] Find the max of each updated row and store in shared memory
-    __shared__ Tcompute max_;
     Tcompute max_0 = op::common_cuda::reduce_op::max<BLOCK_SIZE, Tdata>(x, width, x_stride_w);
     if (threadIdx.x == 0) {
         *y = max_0;
