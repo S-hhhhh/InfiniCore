@@ -729,3 +729,36 @@ def gelu_(lib):
     ]
     lib.infiniopDestroyGeluDescriptor.restype = c_int32
     lib.infiniopDestroyGeluDescriptor.argtypes = [infiniopOperatorDescriptor_t]
+
+@OpRegister.operator
+def cross_entropy_loss_backward_(lib):
+    lib.infiniopCreateCrossEntropyLossBackwardDescriptor.restype = c_int32
+    lib.infiniopCreateCrossEntropyLossBackwardDescriptor.argtypes = [
+        infiniopHandle_t,
+        POINTER(infiniopOperatorDescriptor_t),
+        infiniopTensorDescriptor_t,
+        infiniopTensorDescriptor_t,
+        infiniopTensorDescriptor_t,
+    ]
+
+    lib.infiniopGetCrossEntropyLossBackwardWorkspaceSize.restype = c_int32
+    lib.infiniopGetCrossEntropyLossBackwardWorkspaceSize.argtypes = [
+        infiniopOperatorDescriptor_t,
+        POINTER(c_size_t),
+    ]
+
+    lib.infiniopCrossEntropyLossBackward.restype = c_int32
+    lib.infiniopCrossEntropyLossBackward.argtypes = [
+        infiniopOperatorDescriptor_t,
+        c_void_p,
+        c_size_t,
+        c_void_p,
+        c_void_p,
+        c_void_p,
+        c_void_p,
+    ]
+
+    lib.infiniopDestroyCrossEntropyLossBackwardDescriptor.restype = c_int32
+    lib.infiniopDestroyCrossEntropyLossBackwardDescriptor.argtypes = [
+        infiniopOperatorDescriptor_t,
+    ]

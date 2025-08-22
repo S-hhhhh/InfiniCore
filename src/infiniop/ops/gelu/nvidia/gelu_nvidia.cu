@@ -45,7 +45,7 @@ infiniStatus_t Descriptor::calculate(
     case INFINI_DTYPE_F16:
         return _device_info->calculate<256, cuda::GeluOp, half>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_BF16:
-        return _device_info->calculate<256, cuda::GeluOp, nv_bfloat16>(_info, workspace, output, inputs, stream);
+        return _device_info->calculate<256, cuda::GeluOp, cuda_bfloat16>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_F32:
         return _device_info->calculate<256, cuda::GeluOp, float>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_F64:

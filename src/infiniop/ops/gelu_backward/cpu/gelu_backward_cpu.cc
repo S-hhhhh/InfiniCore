@@ -19,7 +19,7 @@ infiniStatus_t Descriptor::create(
     const auto &input_shape = input_desc->shape();
     const auto &grad_output_shape = grad_output_desc->shape();
 
-    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_BF16);
+    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_F64, INFINI_DTYPE_BF16);
 
     CHECK_SAME_SHAPE(grad_input_shape, input_shape, grad_output_shape);
 
@@ -41,6 +41,8 @@ infiniStatus_t Descriptor::calculate(
         return _device_info->calculate<GeluBackwardOp, fp16_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_F32:
         return _device_info->calculate<GeluBackwardOp, float>(_info, output, inputs, stream);
+    case INFINI_DTYPE_F64:
+        return _device_info->calculate<GeluBackwardOp, double>(_info, output, inputs, stream);
     case INFINI_DTYPE_BF16:
         return _device_info->calculate<GeluBackwardOp, bf16_t>(_info, output, inputs, stream);
     default:

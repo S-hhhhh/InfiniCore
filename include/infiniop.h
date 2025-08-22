@@ -25,5 +25,6 @@
 #include "infiniop/ops/relu_backward.h"
 #include "infiniop/ops/gelu.h"
 #include "infiniop/ops/gelu_backward.h"
+#include "infiniop/ops/cross_entropy_loss_backward.h"
 
 #endif // __INFINIOP_API_H__

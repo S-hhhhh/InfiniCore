@@ -17,7 +17,7 @@ infiniStatus_t Descriptor::create(
     const auto &output_shape = out_desc->shape();
     const auto &input_shape = input_desc->shape();
 
-    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_BF16);
+    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_BF16, INFINI_DTYPE_F64);
 
     CHECK_SAME_SHAPE(output_shape, input_shape);
 
