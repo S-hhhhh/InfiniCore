@@ -11,23 +11,24 @@ public:
     __device__ __forceinline__ T operator()(const T &probs, const T &target, const size_t batch_size) const {
         // grad_logits = (probs - target) / batch_size (reduction='mean')
         T diff;
-        T scale = static_cast<T>(1.0) / static_cast<T>(batch_size);
+        T scale;
         
-        if constexpr (std::is_same_v<T, half2>) {
-            diff = __hsub2(probs, target);
-            return __hmul2(diff, __float2half2_rn(static_cast<float>(scale)));
-        } else if constexpr (std::is_same_v<T, half>) {
+        if constexpr (std::is_same_v<T, half>) {
             diff = __hsub(probs, target);
-            return __hmul(diff, __float2half(static_cast<float>(scale)));
+            scale = static_cast<half>(1.0) / __float2half(static_cast<float>(batch_size));
+            return __hmul(diff, scale);
         } else if constexpr (std::is_same_v<T, cuda_bfloat16>) {
             diff = __hsub(probs, target);
-            return __hmul(diff, __float2bfloat16(static_cast<float>(scale)));
+            scale = static_cast<cuda_bfloat16>(1.0) / __float2bfloat16(static_cast<float>(batch_size));
+            return __hmul(diff, scale);
         } else if constexpr (std::is_same_v<T, float>) {
             diff = __fsub_rd(probs, target);
-            return __fmul_rd(diff, static_cast<float>(scale));
+            scale = 1.0 / batch_size;
+            return __fmul_rd(diff, scale);
         } else {
             // fallback for other types (double, etc.)
             diff = probs - target;
+            scale = 1.0 / batch_size;
             return diff * scale;
         }
     }
