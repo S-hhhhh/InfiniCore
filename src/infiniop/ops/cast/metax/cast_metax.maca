@@ -1,6 +1,6 @@
 #include "cast_metax.h"
 
-#include "../../../elementwise/metax/elementwise_metax.cuh"
+#include "../../../elementwise/metax/elementwise_metax.h"
 
 #include "../cuda/kernel.cuh"
 

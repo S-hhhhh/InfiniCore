@@ -61,13 +61,13 @@ infiniStatus_t Descriptor::calculate(
                     reinterpret_cast<hcStream_t>(stream)));
     switch (_dtype) {
     case INFINI_DTYPE_F16:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, half>(_info, workspace, output, inputs, stream, _negative_slope);
+        return _device_info->calculate<256, cuda::LeakyReLUOp, half>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
     case INFINI_DTYPE_BF16:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, cuda_bfloat16>(_info, workspace, output, inputs, stream, _negative_slope);
+        return _device_info->calculate<256, cuda::LeakyReLUOp, cuda_bfloat16>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
     case INFINI_DTYPE_F32:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, float>(_info, workspace, output, inputs, stream, _negative_slope);
+        return _device_info->calculate<256, cuda::LeakyReLUOp, float>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
     case INFINI_DTYPE_F64:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, double>(_info, workspace, output, inputs, stream, _negative_slope);
+        return _device_info->calculate<256, cuda::LeakyReLUOp, double>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
     default:
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }
