@@ -21,7 +21,7 @@ infiniStatus_t Descriptor::create(
     const auto &out_shape = out_desc->shape();
     const auto &input_shape = input_desc->shape();
 
-    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_BF16);
+    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_F64, INFINI_DTYPE_BF16);
 
     CHECK_SAME_SHAPE(out_shape, input_shape);
 
@@ -49,6 +49,8 @@ infiniStatus_t Descriptor::calculate(
         return _device_info->calculate<256, cuda::TanhOp, cuda_bfloat16>(_info, workspace, output, inputs, stream);
     case INFINI_DTYPE_F32:
         return _device_info->calculate<256, cuda::TanhOp, float>(_info, workspace, output, inputs, stream);
+    case INFINI_DTYPE_F64:
+        return _device_info->calculate<256, cuda::TanhOp, double>(_info, workspace, output, inputs, stream);
     default:
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }

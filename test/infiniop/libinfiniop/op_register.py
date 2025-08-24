@@ -663,3 +663,37 @@ def where_(lib):
     lib.infiniopDestroyWhereDescriptor.argtypes = [
         infiniopOperatorDescriptor_t,
     ]
+
+@OpRegister.operator
+def leaky_relu_(lib):
+    lib.infiniopCreateLeakyReLUDescriptor.restype = c_int32
+    lib.infiniopCreateLeakyReLUDescriptor.argtypes = [
+        infiniopHandle_t,
+        POINTER(infiniopOperatorDescriptor_t),
+        infiniopTensorDescriptor_t,
+        infiniopTensorDescriptor_t,
+        c_float,
+    ]
+
+    lib.infiniopGetLeakyReLUWorkspaceSize.restype = c_int32
+    lib.infiniopGetLeakyReLUWorkspaceSize.argtypes = [
+        infiniopOperatorDescriptor_t,
+        POINTER(c_size_t),
+    ]
+
+    lib.infiniopLeakyReLU.restype = c_int32
+    lib.infiniopLeakyReLU.argtypes = [
+        infiniopOperatorDescriptor_t,
+        c_void_p,
+        c_size_t,
+        c_void_p,
+        c_void_p,
+        c_void_p,
+    ]
+
+    lib.infiniopDestroyLeakyReLUDescriptor.restype = c_int32
+    lib.infiniopDestroyLeakyReLUDescriptor.argtypes = [
+        infiniopOperatorDescriptor_t,
+    ]
+
+

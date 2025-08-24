@@ -23,6 +23,8 @@ DECLARE_INFINIOP_TEST(tanh)
 DECLARE_INFINIOP_TEST(sigmoid_backward)
 DECLARE_INFINIOP_TEST(hardswish)
 DECLARE_INFINIOP_TEST(where)
+DECLARE_INFINIOP_TEST(leakyrelu)
+DECLARE_INFINIOP_TEST(cast)
 
 #define REGISTER_INFINIOP_TEST(name)                      \
     {                                                     \
@@ -57,6 +59,8 @@ DECLARE_INFINIOP_TEST(where)
         REGISTER_INFINIOP_TEST(sigmoid_backward)\
         REGISTER_INFINIOP_TEST(hardswish)      \
         REGISTER_INFINIOP_TEST(where)          \
+        REGISTER_INFINIOP_TEST(leakyrelu)      \
+        REGISTER_INFINIOP_TEST(cast)           \
     }
 
 namespace infiniop_test {

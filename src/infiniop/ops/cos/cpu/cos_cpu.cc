@@ -17,7 +17,7 @@ infiniStatus_t Descriptor::create(
     const auto &out_shape = out_desc->shape();
     const auto &input_shape = input_desc->shape();
 
-    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_BF16);
+    CHECK_DTYPE(dtype, INFINI_DTYPE_F16, INFINI_DTYPE_F32, INFINI_DTYPE_F64, INFINI_DTYPE_BF16);
 
     CHECK_SAME_SHAPE(out_shape, input_shape);
 
@@ -39,6 +39,8 @@ infiniStatus_t Descriptor::calculate(
         return _device_info->calculate<CosOp, fp16_t>(_info, output, inputs, stream);
     case INFINI_DTYPE_F32:
         return _device_info->calculate<CosOp, float>(_info, output, inputs, stream);
+    case INFINI_DTYPE_F64:
+        return _device_info->calculate<CosOp, double>(_info, output, inputs, stream);
     case INFINI_DTYPE_BF16:
         return _device_info->calculate<CosOp, bf16_t>(_info, output, inputs, stream);
     default:

@@ -31,6 +31,8 @@ def run_tests(args):
         "sigmoid_backward.py",
         "hardswish.py",
         "where.py",
+        "leaky_relu.py",
+        "cast.py",
     ]:
         result = subprocess.run(
             f"python {test} {args} --debug", text=True, encoding="utf-8", shell=True
