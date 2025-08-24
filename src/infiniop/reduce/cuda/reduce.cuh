@@ -63,10 +63,9 @@ __device__ __forceinline__ Tdata max(const Tdata *data_ptr, size_t count) {
 
 // Sum(x) on non-contiguous data of length count
 template <unsigned int BLOCK_SIZE, typename Tdata, typename Tcompute>
-__device__ __forceinline__ Tcompute sum(const Tdata *data_ptr, 
-                                        size_t count, 
-                                        ptrdiff_t stride)
-{
+__device__ __forceinline__ Tcompute sum(const Tdata *data_ptr,
+                                        size_t count,
+                                        ptrdiff_t stride) {
     Tcompute s = 0;
 
     for (size_t i = threadIdx.x; i < count; i += BLOCK_SIZE) {
@@ -81,10 +80,9 @@ __device__ __forceinline__ Tcompute sum(const Tdata *data_ptr,
 
 // Max(x) on non-contiguous data of length count
 template <unsigned int BLOCK_SIZE, typename Tdata>
-__device__ __forceinline__ Tdata max(const Tdata *data_ptr, 
+__device__ __forceinline__ Tdata max(const Tdata *data_ptr,
                                      size_t count,
-                                     ptrdiff_t stride)
-{
+                                     ptrdiff_t stride) {
     Tdata max_ = data_ptr[0];
 
     for (size_t i = threadIdx.x; i < count; i += BLOCK_SIZE) {

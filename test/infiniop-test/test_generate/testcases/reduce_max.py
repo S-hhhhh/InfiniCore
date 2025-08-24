@@ -4,7 +4,13 @@ import gguf
 from typing import List
 from enum import Enum, auto
 
-from .. import InfiniopTestWriter, InfiniopTestCase, np_dtype_to_ggml, gguf_strides, contiguous_gguf_strides
+from .. import (
+    InfiniopTestWriter,
+    InfiniopTestCase,
+    np_dtype_to_ggml,
+    gguf_strides,
+    contiguous_gguf_strides,
+)
 
 
 def reduce_max(x, dim):
@@ -31,8 +37,8 @@ class ReduceMaxTestCase(InfiniopTestCase):
         super().__init__("reduce_max")
         self.x = x
         self.y = y
-        self.shape_x=shape_x
-        self.shape_y=shape_y
+        self.shape_x = shape_x
+        self.shape_y = shape_y
         self.stride_x = stride_x
         self.stride_y = stride_y
         self.dim = dim
@@ -45,10 +51,18 @@ class ReduceMaxTestCase(InfiniopTestCase):
         if self.shape_y is not None:
             test_writer.add_array(test_writer.gguf_key("output.shape"), self.shape_y)
         if self.stride_x is not None:
-            test_writer.add_array(test_writer.gguf_key("input.strides"), gguf_strides(*self.stride_x))
+            test_writer.add_array(
+                test_writer.gguf_key("input.strides"), gguf_strides(*self.stride_x)
+            )
         test_writer.add_array(
             test_writer.gguf_key("output.strides"),
-            gguf_strides(*self.stride_y if self.stride_y is not None else contiguous_gguf_strides(self.shape_y))
+            gguf_strides(
+                *(
+                    self.stride_y
+                    if self.stride_y is not None
+                    else contiguous_gguf_strides(self.shape_y)
+                )
+            ),
         )
         test_writer.add_uint64(test_writer.gguf_key("dim"), self.dim)
         test_writer.add_tensor(
@@ -61,9 +75,7 @@ class ReduceMaxTestCase(InfiniopTestCase):
             self.y,
             raw_dtype=np_dtype_to_ggml(self.y.dtype),
         )
-        ans = reduce_max(
-            self.x.astype(np.float64), self.dim
-        )
+        ans = reduce_max(self.x.astype(np.float64), self.dim)
         test_writer.add_tensor(
             test_writer.gguf_key("ans"), ans, raw_dtype=gguf.GGMLQuantizationType.F64
         )
@@ -77,20 +89,20 @@ if __name__ == "__main__":
     # ==============================================================================
     # These are not maxt to be imported from other modules
     _TEST_CASES_ = [
-    # y_shape, x_shape, y_stride, x_stride, dim
-    # ((0,), (0,), (0,), (0,), 0),
-    ((1, ), (32, ), None, None, 0),
-    ((1, 4), (1, 4), None, None, 0),
-    ((1, 1), (1, 4), None, None, 1),
-    ((16, 1), (16, 2048), None, None, 1),
-    ((1, 16), (2048, 16), None, None, 0),
-    ((16, 1), (16, 2048), (4096, 1), (4096, 1), 1),
-    ((1, 2048), (16, 2048), (4096, 1), (4096, 1), 0),
-    ((4, 4, 1), (4, 4, 2048), None, None, 2),
-    ((1, 4, 4), (2048, 4, 4), None, None, 0),
-    ((4, 1, 4), (4, 2048, 4), (45056, 5632, 1), (32768, 8, 1), 1),
-    ((1, 8, 4, 8), (16, 8, 4, 8), (256, 32, 8, 1), (256, 32, 8, 1), 0),
-]
+        # y_shape, x_shape, y_stride, x_stride, dim
+        # ((0,), (0,), (0,), (0,), 0),
+        ((1,), (32,), None, None, 0),
+        ((1, 4), (1, 4), None, None, 0),
+        ((1, 1), (1, 4), None, None, 1),
+        ((16, 1), (16, 2048), None, None, 1),
+        ((1, 16), (2048, 16), None, None, 0),
+        ((16, 1), (16, 2048), (4096, 1), (4096, 1), 1),
+        ((1, 2048), (16, 2048), (4096, 1), (4096, 1), 0),
+        ((4, 4, 1), (4, 4, 2048), None, None, 2),
+        ((1, 4, 4), (2048, 4, 4), None, None, 0),
+        ((4, 1, 4), (4, 2048, 4), (45056, 5632, 1), (32768, 8, 1), 1),
+        ((1, 8, 4, 8), (16, 8, 4, 8), (256, 32, 8, 1), (256, 32, 8, 1), 0),
+    ]
     _TENSOR_DTYPES_ = [np.float16, np.float32]
 
     for dtype in _TENSOR_DTYPES_:
@@ -107,6 +119,6 @@ if __name__ == "__main__":
                 dim,
             )
             test_cases.append(test_case)
-            
+
     test_writer.add_tests(test_cases)
     test_writer.save()

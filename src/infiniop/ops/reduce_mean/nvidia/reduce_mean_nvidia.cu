@@ -47,7 +47,7 @@ infiniStatus_t launchKernel(void *y, const void *x, infiniDtype_t dtype,
                             ptrdiff_t y_stride_b, ptrdiff_t y_stride_c, ptrdiff_t y_stride_h,
                             ptrdiff_t x_stride_b, ptrdiff_t x_stride_c, ptrdiff_t x_stride_h, ptrdiff_t x_stride_w,
                             cudaStream_t stream) {
-    dim3 grid=dim3(uint32_t(batch_size), uint32_t(channels), uint32_t(height));
+    dim3 grid = dim3(uint32_t(batch_size), uint32_t(channels), uint32_t(height));
     if (dtype == INFINI_DTYPE_F16) {
         ReduceMean<BLOCK_SIZE, half, float>
             <<<grid, BLOCK_SIZE, 0, stream>>>((half *)y, (const half *)x,
@@ -80,17 +80,17 @@ infiniStatus_t Descriptor::calculate(void *workspace, size_t workspace_size,
     if (_opaque->internal->maxThreadsPerBlock() == CUDA_BLOCK_SIZE_1024) {
         CHECK_STATUS(launchKernel<CUDA_BLOCK_SIZE_1024>(
             y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2], _info.shape[3],
-            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2], 
+            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2],
             _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], _info.x_strides[3], stream));
     } else if (_opaque->internal->maxThreadsPerBlock() == CUDA_BLOCK_SIZE_512) {
         CHECK_STATUS(launchKernel<CUDA_BLOCK_SIZE_512>(
             y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2], _info.shape[3],
-            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2], 
+            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2],
             _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], _info.x_strides[3], stream));
     } else if (_opaque->internal->maxThreadsPerBlock() == CUDA_BLOCK_SIZE_4096) {
         CHECK_STATUS(launchKernel<CUDA_BLOCK_SIZE_4096>(
             y, x, _info.dtype, _info.shape[0], _info.shape[1], _info.shape[2], _info.shape[3],
-            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2], 
+            _info.y_strides[0], _info.y_strides[1], _info.y_strides[2],
             _info.x_strides[0], _info.x_strides[1], _info.x_strides[2], _info.x_strides[3], stream));
     } else {
         return INFINI_STATUS_DEVICE_ARCHITECTURE_NOT_SUPPORTED;

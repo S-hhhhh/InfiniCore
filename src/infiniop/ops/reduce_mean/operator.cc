@@ -22,13 +22,13 @@ __C infiniStatus_t infiniopCreateReduceMeanDescriptor(
     infiniopTensorDescriptor_t x_desc,
     size_t dim) {
 
-#define CREATE(CASE, NAMESPACE)                                                       \
-    case CASE:                                                                        \
+#define CREATE(CASE, NAMESPACE)                                                    \
+    case CASE:                                                                     \
         return op::reduce_mean::NAMESPACE::Descriptor::create(                     \
-            handle,                                                                   \
+            handle,                                                                \
             reinterpret_cast<op::reduce_mean::NAMESPACE::Descriptor **>(desc_ptr), \
-            y_desc,                                                                   \
-            x_desc,                                                                 \
+            y_desc,                                                                \
+            x_desc,                                                                \
             dim);
 
     switch (handle->device) {
@@ -44,28 +44,28 @@ __C infiniStatus_t infiniopCreateReduceMeanDescriptor(
 #ifdef ENABLE_METAX_API
         CREATE(INFINI_DEVICE_METAX, metax)
 #endif
-// #ifdef ENABLE_ASCEND_API
-//         CREATE(INFINI_DEVICE_ASCEND, ascend)
-// #endif
-// #ifdef ENABLE_CAMBRICON_MLU
-//     case DevCambriconMlu: {
-//         return bangCreateCausalSoftmaxDescriptor((BangHandle_t)handle, (CausalSoftmaxBangDescriptor_t *)desc_ptr, y_desc);
-//         // return cnnlCreateCausalSoftmaxDescriptor((BangHandle_t) handle, (CausalSoftmaxCnnlDescriptor_t *) desc_ptr, y_desc);
-//     }
-// #endif
-// #ifdef ENABLE_MTHREADS_GPU
-//     case DevMthreadsGpu: {
-//         return musaCreateCausalSoftmaxDescriptor((MusaHandle_t)handle, (CausalSoftmaxMusaDescriptor_t *)desc_ptr, y_desc);
-//     }
-// #endif
+        // #ifdef ENABLE_ASCEND_API
+        //         CREATE(INFINI_DEVICE_ASCEND, ascend)
+        // #endif
+        // #ifdef ENABLE_CAMBRICON_MLU
+        //     case DevCambriconMlu: {
+        //         return bangCreateCausalSoftmaxDescriptor((BangHandle_t)handle, (CausalSoftmaxBangDescriptor_t *)desc_ptr, y_desc);
+        //         // return cnnlCreateCausalSoftmaxDescriptor((BangHandle_t) handle, (CausalSoftmaxCnnlDescriptor_t *) desc_ptr, y_desc);
+        //     }
+        // #endif
+        // #ifdef ENABLE_MTHREADS_GPU
+        //     case DevMthreadsGpu: {
+        //         return musaCreateCausalSoftmaxDescriptor((MusaHandle_t)handle, (CausalSoftmaxMusaDescriptor_t *)desc_ptr, y_desc);
+        //     }
+        // #endif
     }
     return INFINI_STATUS_DEVICE_TYPE_NOT_SUPPORTED;
 }
 
 __C infiniStatus_t infiniopGetReduceMeanWorkspaceSize(infiniopReduceMeanDescriptor_t desc, size_t *size) {
 
-#define GET(CASE, NAMESPACE)                                                                          \
-    case CASE:                                                                                        \
+#define GET(CASE, NAMESPACE)                                                                       \
+    case CASE:                                                                                     \
         *size = reinterpret_cast<op::reduce_mean::NAMESPACE::Descriptor *>(desc)->workspaceSize(); \
         return INFINI_STATUS_SUCCESS;
 
@@ -82,21 +82,21 @@ __C infiniStatus_t infiniopGetReduceMeanWorkspaceSize(infiniopReduceMeanDescript
 #ifdef ENABLE_METAX_API
         GET(INFINI_DEVICE_METAX, metax)
 #endif
-// #ifdef ENABLE_ASCEND_API
-//         GET(INFINI_DEVICE_ASCEND, ascend)
-// #endif
-// #ifdef ENABLE_CAMBRICON_MLU
-//     case DevCambriconMlu: {
-//         return bangGetCausalSoftmaxWorkspaceSize((CausalSoftmaxBangDescriptor_t)desc, size);
-//         // return cnnlGetCausalSoftmaxWorkspaceSize((CausalSoftmaxCnnlDescriptor_t) desc, size);
-//     }
+        // #ifdef ENABLE_ASCEND_API
+        //         GET(INFINI_DEVICE_ASCEND, ascend)
+        // #endif
+        // #ifdef ENABLE_CAMBRICON_MLU
+        //     case DevCambriconMlu: {
+        //         return bangGetCausalSoftmaxWorkspaceSize((CausalSoftmaxBangDescriptor_t)desc, size);
+        //         // return cnnlGetCausalSoftmaxWorkspaceSize((CausalSoftmaxCnnlDescriptor_t) desc, size);
+        //     }
 
-// #endif
-// #ifdef ENABLE_MTHREADS_GPU
-//     case DevMthreadsGpu: {
-//         return musaGetCausalSoftmaxWorkspaceSize((CausalSoftmaxMusaDescriptor_t)desc, size);
-//     }
-// #endif
+        // #endif
+        // #ifdef ENABLE_MTHREADS_GPU
+        //     case DevMthreadsGpu: {
+        //         return musaGetCausalSoftmaxWorkspaceSize((CausalSoftmaxMusaDescriptor_t)desc, size);
+        //     }
+        // #endif
     }
     return INFINI_STATUS_DEVICE_TYPE_NOT_SUPPORTED;
 }
@@ -108,8 +108,8 @@ __C infiniStatus_t infiniopReduceMean(
     const void *x,
     void *stream) {
 
-#define CALCULATE(CASE, NAMESPACE)                                                             \
-    case CASE:                                                                                 \
+#define CALCULATE(CASE, NAMESPACE)                                                          \
+    case CASE:                                                                              \
         return reinterpret_cast<op::reduce_mean::NAMESPACE::Descriptor *>(desc)->calculate( \
             workspace, workspace_size, y, x, stream);
 
@@ -126,28 +126,28 @@ __C infiniStatus_t infiniopReduceMean(
 #ifdef ENABLE_METAX_API
         CALCULATE(INFINI_DEVICE_METAX, metax)
 #endif
-// #ifdef ENABLE_ASCEND_API
-//         CALCULATE(INFINI_DEVICE_ASCEND, ascend)
-// #endif
-// #ifdef ENABLE_CAMBRICON_MLU
-//     case DevCambriconMlu: {
-//         return bangCausalSoftmax((CausalSoftmaxBangDescriptor_t)desc, workspace, workspace_size, data, stream);
-//         // return cnnlCausalSoftmax((CausalSoftmaxCnnlDescriptor_t) desc, workspace, workspace_size, data, stream);
-//     }
-// #endif
-// #ifdef ENABLE_MTHREADS_GPU
-//     case DevMthreadsGpu: {
-//         return musaCausalSoftmax((CausalSoftmaxMusaDescriptor_t)desc, workspace, workspace_size, data, stream);
-//     }
-// #endif
+        // #ifdef ENABLE_ASCEND_API
+        //         CALCULATE(INFINI_DEVICE_ASCEND, ascend)
+        // #endif
+        // #ifdef ENABLE_CAMBRICON_MLU
+        //     case DevCambriconMlu: {
+        //         return bangCausalSoftmax((CausalSoftmaxBangDescriptor_t)desc, workspace, workspace_size, data, stream);
+        //         // return cnnlCausalSoftmax((CausalSoftmaxCnnlDescriptor_t) desc, workspace, workspace_size, data, stream);
+        //     }
+        // #endif
+        // #ifdef ENABLE_MTHREADS_GPU
+        //     case DevMthreadsGpu: {
+        //         return musaCausalSoftmax((CausalSoftmaxMusaDescriptor_t)desc, workspace, workspace_size, data, stream);
+        //     }
+        // #endif
     }
     return INFINI_STATUS_DEVICE_TYPE_NOT_SUPPORTED;
 }
 
 __C infiniStatus_t infiniopDestroyReduceMeanDescriptor(infiniopReduceMeanDescriptor_t desc) {
 
-#define DESTROY(CASE, NAMESPACE)                                                    \
-    case CASE:                                                                      \
+#define DESTROY(CASE, NAMESPACE)                                                 \
+    case CASE:                                                                   \
         delete reinterpret_cast<op::reduce_mean::NAMESPACE::Descriptor *>(desc); \
         return INFINI_STATUS_SUCCESS;
 
@@ -164,19 +164,19 @@ __C infiniStatus_t infiniopDestroyReduceMeanDescriptor(infiniopReduceMeanDescrip
 #ifdef ENABLE_METAX_API
         DESTROY(INFINI_DEVICE_METAX, metax)
 #endif
-// #ifdef ENABLE_ASCEND_API
-//         DESTROY(INFINI_DEVICE_ASCEND, ascend)
-// #endif
-// #ifdef ENABLE_CAMBRICON_MLU
-//     case DevCambriconMlu: {
-//         return bangDestroyCausalSoftmaxDescriptor((CausalSoftmaxBangDescriptor_t)desc);
-//         // return cnnlDestroyCausalSoftmaxDescriptor((CausalSoftmaxCnnlDescriptor_t) desc);
-//     }
-// #endif
-// #ifdef ENABLE_MTHREADS_GPU
-//     case DevMthreadsGpu:
-//         return musaDestroyCausalSoftmaxDescriptor((CausalSoftmaxMusaDescriptor_t)desc);
-// #endif
+        // #ifdef ENABLE_ASCEND_API
+        //         DESTROY(INFINI_DEVICE_ASCEND, ascend)
+        // #endif
+        // #ifdef ENABLE_CAMBRICON_MLU
+        //     case DevCambriconMlu: {
+        //         return bangDestroyCausalSoftmaxDescriptor((CausalSoftmaxBangDescriptor_t)desc);
+        //         // return cnnlDestroyCausalSoftmaxDescriptor((CausalSoftmaxCnnlDescriptor_t) desc);
+        //     }
+        // #endif
+        // #ifdef ENABLE_MTHREADS_GPU
+        //     case DevMthreadsGpu:
+        //         return musaDestroyCausalSoftmaxDescriptor((CausalSoftmaxMusaDescriptor_t)desc);
+        // #endif
     }
     return INFINI_STATUS_DEVICE_TYPE_NOT_SUPPORTED;
 }

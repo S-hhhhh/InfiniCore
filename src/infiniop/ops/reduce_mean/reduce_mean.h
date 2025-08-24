@@ -6,16 +6,16 @@
 
 #define DESCRIPTOR(NAMESPACE)                                    \
                                                                  \
-    namespace op::reduce_mean::NAMESPACE {                    \
+    namespace op::reduce_mean::NAMESPACE {                       \
     class Descriptor final : public InfiniopDescriptor {         \
         struct Opaque;                                           \
         Opaque *_opaque;                                         \
-        ReduceMeanInfo _info;                                 \
+        ReduceMeanInfo _info;                                    \
         size_t _workspace_size;                                  \
                                                                  \
         Descriptor(                                              \
             Opaque *opaque,                                      \
-            ReduceMeanInfo info,                              \
+            ReduceMeanInfo info,                                 \
             size_t workspace_size,                               \
             infiniDevice_t device_type,                          \
             int device_id)                                       \

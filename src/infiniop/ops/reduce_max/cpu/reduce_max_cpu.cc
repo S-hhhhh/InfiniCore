@@ -23,7 +23,7 @@ infiniStatus_t reduce_max(const ReduceMaxInfo *info, T *y, const T *x) {
     const size_t batch_size = info->shape[0];
     const size_t channels = info->shape[1];
     const size_t rows = info->shape[2];
-    const size_t cols = info->shape[3];  // 规约维度
+    const size_t cols = info->shape[3]; // 规约维度
 
     const ptrdiff_t y_batch_stride = info->y_strides[0];
     const ptrdiff_t y_channel_stride = info->y_strides[1];
@@ -32,20 +32,20 @@ infiniStatus_t reduce_max(const ReduceMaxInfo *info, T *y, const T *x) {
     const ptrdiff_t x_channel_stride = info->x_strides[1];
     const ptrdiff_t x_row_stride = info->x_strides[2];
     const ptrdiff_t x_col_stride = info->x_strides[3];
-    
-    #pragma omp parallel for collapse(3)
+
+#pragma omp parallel for collapse(3)
     for (size_t batch = 0; batch < batch_size; ++batch) {
         for (size_t channel = 0; channel < channels; ++channel) {
             for (size_t row = 0; row < rows; ++row) {
-                const T* input_start = x + batch * x_batch_stride 
-                                    + channel * x_channel_stride 
-                                    + row * x_row_stride;
-                T* output_ptr = y + batch * y_batch_stride 
-                              + channel * y_channel_stride 
+                const T *input_start = x + batch * x_batch_stride
+                                     + channel * x_channel_stride
+                                     + row * x_row_stride;
+                T *output_ptr = y + batch * y_batch_stride
+                              + channel * y_channel_stride
                               + row * y_row_stride;
-                
+
                 float max = op::common_cpu::reduce_op::max(input_start, cols, x_col_stride);
-                
+
                 if constexpr (std::is_same<T, fp16_t>::value || std::is_same<T, bf16_t>::value) {
                     *output_ptr = utils::cast<T>(max);
                 } else {
@@ -54,7 +54,7 @@ infiniStatus_t reduce_max(const ReduceMaxInfo *info, T *y, const T *x) {
             }
         }
     }
-    
+
     return INFINI_STATUS_SUCCESS;
 }
 infiniStatus_t Descriptor::calculate(

@@ -40,9 +40,9 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 
     infiniopReduceMeanDescriptor_t op_desc;
     CHECK_OR(infiniopCreateReduceMeanDescriptor(handle, &op_desc,
-                                             _attributes->output->desc(),
-                                             _attributes->input->desc(),
-                                             _attributes->dim),
+                                                _attributes->output->desc(),
+                                                _attributes->input->desc(),
+                                                _attributes->dim),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to create ReduceMean descriptor"));
 
     auto input = _attributes->input->to(device, device_id);
@@ -58,10 +58,10 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     }
 
     CHECK_OR(infiniopReduceMean(op_desc,
-                             workspace, workspace_size,
-                             output->data(),
-                             input->data(),
-                             nullptr),
+                                workspace, workspace_size,
+                                output->data(),
+                                input->data(),
+                                nullptr),
              return TEST_FAILED(OP_EXECUTION_FAILED, "ReduceMean execution failed"));
 
     try {
@@ -75,10 +75,10 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     elapsed_time = benchmark(
         [=]() {
             infiniopReduceMean(op_desc,
-                            workspace, workspace_size,
-                            output->data(),
-                            input->data(),
-                            nullptr);
+                               workspace, workspace_size,
+                               output->data(),
+                               input->data(),
+                               nullptr);
         },
         warm_ups, iterations);
 

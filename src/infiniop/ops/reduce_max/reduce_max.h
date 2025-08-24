@@ -7,7 +7,7 @@
 #define DESCRIPTOR(NAMESPACE)                                    \
                                                                  \
     namespace op::reduce_max::NAMESPACE {                        \
-    class Descriptor final : public InfiniopDescriptor {        \
+    class Descriptor final : public InfiniopDescriptor {         \
         struct Opaque;                                           \
         Opaque *_opaque;                                         \
         ReduceMaxInfo _info;                                     \

@@ -454,6 +454,7 @@ def swiglu_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def conv_(lib):
     lib.infiniopCreateConvDescriptor.restype = c_int32
@@ -490,6 +491,7 @@ def conv_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def reduce_mean_(lib):
     lib.infiniopCreateReduceMeanDescriptor.restype = c_int32
@@ -521,6 +523,7 @@ def reduce_mean_(lib):
     lib.infiniopDestroyReduceMeanDescriptor.argtypes = [
         infiniopOperatorDescriptor_t,
     ]
+
 
 @OpRegister.operator
 def reduce_max_(lib):

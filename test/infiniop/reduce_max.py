@@ -25,7 +25,7 @@ from libinfiniop import (
 _TEST_CASES_ = [
     # y_shape, x_shape, y_stride, x_stride, dim
     ((), (), None, None, 0),
-    ((1, ), (32, ), None, None, 0),
+    ((1,), (32,), None, None, 0),
     ((1, 4), (1, 4), None, None, 0),
     ((1, 1), (1, 4), None, None, 1),
     ((16, 1), (16, 2048), None, None, 1),
@@ -56,7 +56,7 @@ NUM_ITERATIONS = 1000
 
 
 def reduce_max(x, dim):
-    return x.max(dim=dim,keepdim=True)[0]
+    return x.max(dim=dim, keepdim=True)[0]
 
 
 def test(
@@ -77,7 +77,7 @@ def test(
 
     x = TestTensor(x_shape, x_stride, dtype, device)
     ans = reduce_max(x.torch_tensor(), dim)
-    
+
     y = TestTensor(y_shape, y_stride, dtype, device)
 
     if sync is not None:
@@ -86,7 +86,11 @@ def test(
     descriptor = infiniopOperatorDescriptor_t()
     check_error(
         LIBINFINIOP.infiniopCreateReduceMaxDescriptor(
-            handle, ctypes.byref(descriptor), y.descriptor, x.descriptor, ctypes.c_size_t(dim)
+            handle,
+            ctypes.byref(descriptor),
+            y.descriptor,
+            x.descriptor,
+            ctypes.c_size_t(dim),
         )
     )
 
