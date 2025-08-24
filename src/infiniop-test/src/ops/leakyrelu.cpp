@@ -65,7 +65,6 @@ std::shared_ptr<infiniop_test::Result> Test::run(
                                /*x*/ input->data(),
                                /*stream*/ nullptr),
              return TEST_FAILED(OP_EXECUTION_FAILED, "Failed during execution."));
-    std::cout<<"i am here 5\n";
     try {
         allClose(output, _attributes->ans, _rtol, _atol, _equal_nan);
     } catch (const std::exception& e) {
