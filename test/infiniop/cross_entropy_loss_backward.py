@@ -20,17 +20,18 @@ from libinfiniop import (
 )
 from enum import Enum, auto
 import numpy as np
+
 # ==============================================================================
 #  Configuration (Internal Use Only)
 # ==============================================================================
 # shape (N, ..., C), probs_stride, target_stride, grad_logits_stride
 _TEST_CASES_ = [
-     ((4, 10), None, None, None),
+    ((4, 10), None, None, None),
     ((4, 10), (10, 1), (10, 1), (10, 1)),
-    ((4, 10), (0, 1), None, None),                 # zero-stride broadcast on probs
+    ((4, 10), (0, 1), None, None),  # zero-stride broadcast on probs
     ((8, 5), None, None, None),
     ((8, 5), (10, 1), (10, 1), (10, 1)),
-    ((8, 5), (5, 0), (0, 5), None),                # mixed zero-stride
+    ((8, 5), (5, 0), (0, 5), None),  # mixed zero-stride
     ((16, 1000), None, None, None),
     ((16, 1000), (2000, 1), (2000, 1), (2000, 1)),
     ((32, 512), None, None, None),
@@ -103,8 +104,8 @@ def test(
     sync=None,
 ):
     # Inputs
-    probs = TestTensor(shape, probs_stride, dtype, device)   # 默认随机；无需 softmax
-    target = TestTensor(shape, target_stride, dtype, device) # 默认随机；无需 one-hot
+    probs = TestTensor(shape, probs_stride, dtype, device)  # 默认随机；无需 softmax
+    target = TestTensor(shape, target_stride, dtype, device)  # 默认随机；无需 one-hot
 
     # Output / Inplace
     if inplace == Inplace.INPLACE_PROBS:
@@ -128,7 +129,9 @@ def test(
     )
 
     # Torch reference
-    grad_logits._torch_tensor = cross_entropy_loss_backward_ref(probs.torch_tensor(), target.torch_tensor(), shape)
+    grad_logits._torch_tensor = cross_entropy_loss_backward_ref(
+        probs.torch_tensor(), target.torch_tensor(), shape
+    )
 
     if sync is not None:
         sync()

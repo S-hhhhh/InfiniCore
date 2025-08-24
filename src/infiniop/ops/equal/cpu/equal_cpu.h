@@ -14,11 +14,10 @@ public:
         // Logical AND: non-zero values are treated as true
         if constexpr (std::is_same_v<Ta, bool> && std::is_same_v<Tb, bool>) {
             return a == b;
-        } else if constexpr (std::is_same_v<Ta, bf16_t> || std::is_same_v<Tb, fp16_t>)  {
+        } else if constexpr (std::is_same_v<Ta, bf16_t> || std::is_same_v<Tb, fp16_t>) {
             // For bf16 and fp16, we can use the cast to float for comparison
             return static_cast<T>(utils::cast<float>(a) == utils::cast<float>(b));
-        }
-        else {
+        } else {
             return static_cast<T>(a == b);
         }
     }

@@ -19,13 +19,13 @@ __C infiniStatus_t infiniopCreateOrDescriptor(
     infiniopTensorDescriptor_t a_desc,
     infiniopTensorDescriptor_t b_desc) {
 
-#define CREATE(CASE, NAMESPACE)                                            \
-    case CASE:                                                             \
-        return op::or_op::NAMESPACE::Descriptor::create(                  \
-            handle,                                                        \
+#define CREATE(CASE, NAMESPACE)                                              \
+    case CASE:                                                               \
+        return op::or_op::NAMESPACE::Descriptor::create(                     \
+            handle,                                                          \
             reinterpret_cast<op::or_op::NAMESPACE::Descriptor **>(desc_ptr), \
-            c_desc,                                                        \
-            {a_desc,                                                       \
+            c_desc,                                                          \
+            {a_desc,                                                         \
              b_desc})
 
     switch (handle->device) {
@@ -52,8 +52,8 @@ __C infiniStatus_t infiniopCreateOrDescriptor(
 
 __C infiniStatus_t infiniopGetOrWorkspaceSize(infiniopOrDescriptor_t desc, size_t *size) {
 
-#define GET(CASE, NAMESPACE)                                                               \
-    case CASE:                                                                             \
+#define GET(CASE, NAMESPACE)                                                                 \
+    case CASE:                                                                               \
         *size = reinterpret_cast<op::or_op::NAMESPACE::Descriptor *>(desc)->workspaceSize(); \
         return INFINI_STATUS_SUCCESS
 
@@ -87,8 +87,8 @@ __C infiniStatus_t infiniopOr(
     const void *b,
     void *stream) {
 
-#define CALCULATE(CASE, NAMESPACE)                                            \
-    case CASE:                                                                \
+#define CALCULATE(CASE, NAMESPACE)                                              \
+    case CASE:                                                                  \
         return reinterpret_cast<const op::or_op::NAMESPACE::Descriptor *>(desc) \
             ->calculate(workspace, workspace_size, c, {a, b}, stream)
 
@@ -117,8 +117,8 @@ __C infiniStatus_t infiniopOr(
 __C infiniStatus_t
 infiniopDestroyOrDescriptor(infiniopOrDescriptor_t desc) {
 
-#define DELETE(CASE, NAMESPACE)                                                \
-    case CASE:                                                                 \
+#define DELETE(CASE, NAMESPACE)                                                  \
+    case CASE:                                                                   \
         delete reinterpret_cast<const op::or_op::NAMESPACE::Descriptor *>(desc); \
         return INFINI_STATUS_SUCCESS
 

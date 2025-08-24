@@ -7,10 +7,10 @@
 namespace infiniop_test::cross_entropy_loss_backward {
 
 struct Test::Attributes {
-    std::shared_ptr<Tensor> probs;        // 概率 (softmax 输出)
-    std::shared_ptr<Tensor> target;       // one-hot 标签 (与 logits 同形状)
-    std::shared_ptr<Tensor> grad_logits;  // 输出: dL/dlogits
-    std::shared_ptr<Tensor> ans;          // 参考结果
+    std::shared_ptr<Tensor> probs;       // 概率 (softmax 输出)
+    std::shared_ptr<Tensor> target;      // one-hot 标签 (与 logits 同形状)
+    std::shared_ptr<Tensor> grad_logits; // 输出: dL/dlogits
+    std::shared_ptr<Tensor> ans;         // 参考结果
 };
 
 std::shared_ptr<Test> Test::build(
@@ -28,10 +28,10 @@ std::shared_ptr<Test> Test::build(
         throw std::runtime_error("Invalid Test");
     }
 
-    test->_attributes->probs        = tensors["probs"];
-    test->_attributes->target       = tensors["target"];
-    test->_attributes->grad_logits  = tensors["grad_logits"];
-    test->_attributes->ans          = tensors["ans"];
+    test->_attributes->probs = tensors["probs"];
+    test->_attributes->target = tensors["target"];
+    test->_attributes->grad_logits = tensors["grad_logits"];
+    test->_attributes->ans = tensors["ans"];
 
     return test;
 }
@@ -42,8 +42,8 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 
     infiniopCrossEntropyLossBackwardDescriptor_t op_desc;
 
-    auto probs       = _attributes->probs->to(device, device_id);
-    auto target      = _attributes->target->to(device, device_id);
+    auto probs = _attributes->probs->to(device, device_id);
+    auto target = _attributes->target->to(device, device_id);
     auto grad_logits = _attributes->grad_logits->to(device, device_id);
 
     CHECK_OR(infiniopCreateCrossEntropyLossBackwardDescriptor(
@@ -57,7 +57,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     CHECK_OR(infiniopGetCrossEntropyLossBackwardWorkspaceSize(op_desc, &workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to get workspace size."));
 
-    void* workspace = nullptr;
+    void *workspace = nullptr;
     CHECK_OR(infinirtMalloc(&workspace, workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to allocate workspace."));
 
@@ -72,7 +72,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     try {
         // 浮点比较；如混合精度，建议设置合理的 rtol/atol
         allClose(grad_logits, _attributes->ans, _rtol, _atol, _equal_nan);
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         infiniopDestroyCrossEntropyLossBackwardDescriptor(op_desc);
         infinirtFree(workspace);
         return TEST_FAILED(RESULT_INCORRECT, e.what());
@@ -108,8 +108,8 @@ std::vector<std::string> Test::output_names() {
 std::string Test::toString() const {
     std::ostringstream oss;
     oss << op_name() << std::endl;
-    oss << "- probs:       " << _attributes->probs->info()       << std::endl;
-    oss << "- target:      " << _attributes->target->info()      << std::endl;
+    oss << "- probs:       " << _attributes->probs->info() << std::endl;
+    oss << "- target:      " << _attributes->target->info() << std::endl;
     oss << "- grad_logits: " << _attributes->grad_logits->info() << std::endl;
     oss << std::scientific << std::setprecision(2);
     oss << "- rtol=" << _rtol << ", atol=" << _atol

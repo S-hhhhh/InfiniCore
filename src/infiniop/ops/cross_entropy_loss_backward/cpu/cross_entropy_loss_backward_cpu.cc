@@ -44,12 +44,12 @@ infiniStatus_t Descriptor::calculate(
     size_t batch_size = 1;
     // size_t num_dims = probs_shape.size();
     size_t num_dims = _info.getNdim();
-    
+
     // 假设最后一维是classes维度，前面所有维度都是batch维度
     for (size_t i = 0; i < num_dims - 1; i++) {
-        batch_size *=  _info.getOutputShape()[i];
+        batch_size *= _info.getOutputShape()[i];
     }
-    
+
     // 防止batch_size为0的情况
     if (batch_size == 0) {
         batch_size = 1;

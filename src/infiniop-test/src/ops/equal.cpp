@@ -26,9 +26,9 @@ std::shared_ptr<Test> Test::build(
         throw std::runtime_error("Invalid Test");
     }
 
-    test->_attributes->a   = tensors["a"];
-    test->_attributes->b   = tensors["b"];
-    test->_attributes->c   = tensors["c"];
+    test->_attributes->a = tensors["a"];
+    test->_attributes->b = tensors["b"];
+    test->_attributes->c = tensors["c"];
     test->_attributes->ans = tensors["ans"];
     return test;
 }
@@ -52,7 +52,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     CHECK_OR(infiniopGetEqualWorkspaceSize(op_desc, &workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to get workspace size."));
 
-    void* workspace;
+    void *workspace;
     CHECK_OR(infinirtMalloc(&workspace, workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to allocate workspace."));
 
@@ -66,7 +66,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     try {
         // 输出为 bool，使用布尔比较
         allEqual(c, _attributes->ans);
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         infiniopDestroyEqualDescriptor(op_desc);
         infinirtFree(workspace);
         return TEST_FAILED(RESULT_INCORRECT, e.what());

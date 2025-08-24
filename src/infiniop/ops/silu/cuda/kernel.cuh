@@ -5,7 +5,7 @@ namespace op::silu::cuda {
 typedef struct SiluOp {
 public:
     static constexpr size_t num_inputs = 1;
-    
+
     template <typename T>
     __device__ __forceinline__ T operator()(const T &x) const {
         if constexpr (std::is_same_v<T, half2>) {

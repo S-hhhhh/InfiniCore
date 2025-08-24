@@ -80,23 +80,21 @@ class TestTensor(CTensor):
         if mode == "random":
             if is_bool:
                 self._torch_tensor = torch.randint(
-                    0,
-                    1,
-                    torch_shape,
-                    dtype=torch.bool,
-                    device=torch_device_map[device]
-                    )
+                    0, 1, torch_shape, dtype=torch.bool, device=torch_device_map[device]
+                )
             elif is_int:
                 self._torch_tensor = torch.randint(
                     -10,
                     10,
                     torch_shape,
                     dtype=to_torch_dtype(dt),
-                    device=torch_device_map[device]
-                    )
+                    device=torch_device_map[device],
+                )
             else:
                 self._torch_tensor = torch.rand(
-                    torch_shape, dtype=to_torch_dtype(dt), device=torch_device_map[device]
+                    torch_shape,
+                    dtype=to_torch_dtype(dt),
+                    device=torch_device_map[device],
                 )
         elif mode == "zeros":
             self._torch_tensor = torch.zeros(
@@ -364,7 +362,7 @@ def debug(actual, desired, atol=0, rtol=1e-2, equal_nan=False, verbose=True):
     if actual.dtype == torch.bool or desired.dtype == torch.bool:
         actual = actual.to(torch.float32)
         desired = desired.to(torch.float32)
-    
+
     print_discrepancy(actual, desired, atol, rtol, equal_nan, verbose)
     np.testing.assert_allclose(
         actual.cpu(), desired.cpu(), rtol, atol, equal_nan, verbose=True

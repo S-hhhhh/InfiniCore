@@ -72,14 +72,16 @@ NUM_ITERATIONS = 1000
 
 def gelu(x):
     """GeLU reference implementation using PyTorch's approximation"""
-    return torch.nn.functional.gelu(x, approximate='tanh').to(x.dtype)
+    return torch.nn.functional.gelu(x, approximate="tanh").to(x.dtype)
 
 
 def test(
     handle, device, shape, inplace=Inplace.OUT_OF_PLACE, dtype=torch.float16, sync=None
 ):
     # Generate random input tensor in a range suitable for GeLU
-    input_torch_tensor = torch.rand(shape) * 4 - 2  # Range [-2, 2] for better GeLU testing
+    input_torch_tensor = (
+        torch.rand(shape) * 4 - 2
+    )  # Range [-2, 2] for better GeLU testing
 
     input_tensor = TestTensor(
         shape,
@@ -112,7 +114,10 @@ def test(
     descriptor = infiniopOperatorDescriptor_t()
     check_error(
         LIBINFINIOP.infiniopCreateGeluDescriptor(
-            handle, ctypes.byref(descriptor), output_tensor.descriptor, input_tensor.descriptor
+            handle,
+            ctypes.byref(descriptor),
+            output_tensor.descriptor,
+            input_tensor.descriptor,
         )
     )
 
@@ -131,8 +136,12 @@ def test(
 
     def lib_gelu():
         LIBINFINIOP.infiniopGelu(
-            descriptor, workspace.data(), workspace.size(), 
-            output_tensor.data(), input_tensor.data(), None
+            descriptor,
+            workspace.data(),
+            workspace.size(),
+            output_tensor.data(),
+            input_tensor.data(),
+            None,
         )
 
     # Execute GeLU operation

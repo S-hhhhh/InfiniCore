@@ -156,7 +156,9 @@ def test(
     atol, rtol = get_tolerance(_TOLERANCE_MAP, dtype)
     if DEBUG:
         debug(c.actual_tensor(), c.torch_tensor(), atol=atol, rtol=rtol, equal_nan=True)
-    assert torch.allclose(c.actual_tensor(), c.torch_tensor(), atol=atol, rtol=rtol, equal_nan=True)
+    assert torch.allclose(
+        c.actual_tensor(), c.torch_tensor(), atol=atol, rtol=rtol, equal_nan=True
+    )
 
     # Profiling workflow
     if PROFILE:

@@ -6,13 +6,13 @@ typedef struct CrossEntropyLossBackwardOp {
 public:
     static constexpr size_t num_inputs = 2;
     // CrossEntropyLossBackwardOp(size_t batch_size) : batch_size_(batch_size) {}
-    
+
     template <typename T>
     __device__ __forceinline__ T operator()(const T &probs, const T &target, const size_t batch_size) const {
         // grad_logits = (probs - target) / batch_size (reduction='mean')
         T diff;
         T scale;
-        
+
         if constexpr (std::is_same_v<T, half>) {
             diff = __hsub(probs, target);
             scale = static_cast<half>(1.0) / __float2half(static_cast<float>(batch_size));
@@ -32,7 +32,7 @@ public:
             return diff * scale;
         }
     }
-    
+
 } CrossEntropyLossBackwardOp;
 } // namespace op::cross_entropy_loss_backward::cuda
 

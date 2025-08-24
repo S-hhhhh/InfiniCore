@@ -80,7 +80,7 @@ def relu_backward(grad_input, input_tensor, grad_output):
     """
     # ReLU backward: grad_input = input > 0 ? grad_output : 0
     result = torch.where(input_tensor > 0, grad_output, torch.zeros_like(grad_output))
-    
+
     # Safe copy to avoid inplace operation issues
     with torch.no_grad():
         grad_input.copy_(result)
@@ -98,9 +98,11 @@ def test(
     sync=None,
 ):
     # Create input tensors with random values including negative and positive values
-    input_tensor = TestTensor(shape, input_stride, dtype, device, mode="random", scale=4.0, bias=-2.0)
+    input_tensor = TestTensor(
+        shape, input_stride, dtype, device, mode="random", scale=4.0, bias=-2.0
+    )
     grad_output = TestTensor(shape, grad_output_stride, dtype, device, mode="random")
-    
+
     if inplace == Inplace.INPLACE_INPUT:
         if input_stride != grad_input_stride:
             return
@@ -122,7 +124,11 @@ def test(
     )
 
     # PyTorch reference computation
-    relu_backward(grad_input.torch_tensor(), input_tensor.torch_tensor(), grad_output.torch_tensor())
+    relu_backward(
+        grad_input.torch_tensor(),
+        input_tensor.torch_tensor(),
+        grad_output.torch_tensor(),
+    )
 
     if sync is not None:
         sync()
@@ -167,8 +173,12 @@ def test(
 
     atol, rtol = get_tolerance(_TOLERANCE_MAP, dtype)
     if DEBUG:
-        debug(grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol)
-    assert torch.allclose(grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol)
+        debug(
+            grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol
+        )
+    assert torch.allclose(
+        grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol
+    )
 
     # Profiling workflow
     if PROFILE:

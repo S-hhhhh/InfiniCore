@@ -28,9 +28,9 @@ std::shared_ptr<Test> Test::build(
         throw std::runtime_error("Invalid Test");
     }
 
-    test->_attributes->a   = tensors["a"];
-    test->_attributes->b   = tensors["b"];
-    test->_attributes->c   = tensors["c"];
+    test->_attributes->a = tensors["a"];
+    test->_attributes->b = tensors["b"];
+    test->_attributes->c = tensors["c"];
     test->_attributes->ans = tensors["ans"];
 
     return test;
@@ -48,7 +48,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     auto c = _attributes->c->to(device, device_id);
 
     CHECK_OR(infiniopCreateOrDescriptor(handle, &op_desc,
-                                                c->desc(), a->desc(), b->desc()),
+                                        c->desc(), a->desc(), b->desc()),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to create or descriptor."));
 
     // —— workspace —— //
@@ -56,19 +56,19 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     CHECK_OR(infiniopGetOrWorkspaceSize(op_desc, &workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to get workspace size."));
 
-    void* workspace;
+    void *workspace;
     CHECK_OR(infinirtMalloc(&workspace, workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to allocate workspace."));
 
     // —— first execution & correctness check —— //
     CHECK_OR(infiniopOr(op_desc, workspace, workspace_size,
-                                c->data(), a->data(), b->data(), nullptr),
+                        c->data(), a->data(), b->data(), nullptr),
              return TEST_FAILED(OP_EXECUTION_FAILED, "Failed during execution."));
 
     try {
         // 逻辑与通常是布尔输出；如为布尔类型，建议 rtol=0, atol=0
         allClose(c, _attributes->ans, _rtol, _atol, _equal_nan);
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         return TEST_FAILED(RESULT_INCORRECT, e.what());
     }
 
@@ -77,7 +77,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     elapsed_time = benchmark(
         [=]() {
             infiniopOr(op_desc, workspace, workspace_size,
-                               c->data(), a->data(), b->data(), nullptr);
+                       c->data(), a->data(), b->data(), nullptr);
         },
         warm_ups, iterations);
 

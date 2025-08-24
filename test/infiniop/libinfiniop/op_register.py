@@ -454,6 +454,7 @@ def swiglu_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def conv_(lib):
     lib.infiniopCreateConvDescriptor.restype = c_int32
@@ -490,6 +491,7 @@ def conv_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def div_(lib):
     lib.infiniopCreateDivDescriptor.restype = c_int32
@@ -523,6 +525,7 @@ def div_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def silu_(lib):
     lib.infiniopCreateSiluDescriptor.restype = c_int32
@@ -543,6 +546,7 @@ def silu_(lib):
     ]
     lib.infiniopDestroySiluDescriptor.restype = c_int32
     lib.infiniopDestroySiluDescriptor.argtypes = [infiniopOperatorDescriptor_t]
+
 
 @OpRegister.operator
 def and_(lib):
@@ -577,6 +581,7 @@ def and_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def or_(lib):
     lib.infiniopCreateOrDescriptor.restype = c_int32
@@ -609,6 +614,7 @@ def or_(lib):
     lib.infiniopDestroyOrDescriptor.argtypes = [
         infiniopOperatorDescriptor_t,
     ]
+
 
 @OpRegister.operator
 def equal_(lib):
@@ -643,6 +649,7 @@ def equal_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def relu_backward_(lib):
     lib.infiniopCreateReluBackwardDescriptor.restype = c_int32
@@ -675,6 +682,7 @@ def relu_backward_(lib):
     lib.infiniopDestroyReluBackwardDescriptor.argtypes = [
         infiniopOperatorDescriptor_t,
     ]
+
 
 @OpRegister.operator
 def gelu_backward_(lib):
@@ -709,6 +717,7 @@ def gelu_backward_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def gelu_(lib):
     lib.infiniopCreateGeluDescriptor.restype = c_int32
@@ -729,6 +738,7 @@ def gelu_(lib):
     ]
     lib.infiniopDestroyGeluDescriptor.restype = c_int32
     lib.infiniopDestroyGeluDescriptor.argtypes = [infiniopOperatorDescriptor_t]
+
 
 @OpRegister.operator
 def cross_entropy_loss_backward_(lib):

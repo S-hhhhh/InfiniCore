@@ -5,7 +5,7 @@ namespace op::equal_op::cuda {
 typedef struct EqualOp {
 public:
     static constexpr size_t num_inputs = 2;
-    
+
     template <typename T, typename Ta, typename Tb>
     __device__ __forceinline__ T operator()(const Ta &a, const Tb &b) const {
         if constexpr (std::is_same_v<Ta, half2>) {

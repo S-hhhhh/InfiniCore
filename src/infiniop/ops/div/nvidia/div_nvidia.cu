@@ -1,7 +1,7 @@
 #include "../../../elementwise/nvidia/elementwise_nvidia.cuh"
 
-#include "kernel.cuh"
 #include "div_nvidia.cuh"
+#include "kernel.cuh"
 
 namespace op::div::nvidia {
 

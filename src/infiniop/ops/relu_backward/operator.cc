@@ -19,13 +19,13 @@ __C infiniStatus_t infiniopCreateReluBackwardDescriptor(
     infiniopTensorDescriptor_t input_desc,
     infiniopTensorDescriptor_t grad_output_desc) {
 
-#define CREATE(CASE, NAMESPACE)                                                         \
-    case CASE:                                                                          \
-        return op::relu_backward::NAMESPACE::Descriptor::create(                       \
-            handle,                                                                     \
-            reinterpret_cast<op::relu_backward::NAMESPACE::Descriptor **>(desc_ptr),   \
-            grad_input_desc,                                                            \
-            {input_desc,                                                                \
+#define CREATE(CASE, NAMESPACE)                                                      \
+    case CASE:                                                                       \
+        return op::relu_backward::NAMESPACE::Descriptor::create(                     \
+            handle,                                                                  \
+            reinterpret_cast<op::relu_backward::NAMESPACE::Descriptor **>(desc_ptr), \
+            grad_input_desc,                                                         \
+            {input_desc,                                                             \
              grad_output_desc})
 
     switch (handle->device) {
@@ -52,9 +52,9 @@ __C infiniStatus_t infiniopCreateReluBackwardDescriptor(
 
 __C infiniStatus_t infiniopGetReluBackwardWorkspaceSize(infiniopReluBackwardDescriptor_t desc, size_t *size) {
 
-#define GET(CASE, NAMESPACE)                                                                           \
-    case CASE:                                                                                         \
-        *size = reinterpret_cast<op::relu_backward::NAMESPACE::Descriptor *>(desc)->workspaceSize();  \
+#define GET(CASE, NAMESPACE)                                                                         \
+    case CASE:                                                                                       \
+        *size = reinterpret_cast<op::relu_backward::NAMESPACE::Descriptor *>(desc)->workspaceSize(); \
         return INFINI_STATUS_SUCCESS
 
     switch (desc->device_type) {
@@ -87,8 +87,8 @@ __C infiniStatus_t infiniopReluBackward(
     const void *grad_output,
     void *stream) {
 
-#define CALCULATE(CASE, NAMESPACE)                                                     \
-    case CASE:                                                                         \
+#define CALCULATE(CASE, NAMESPACE)                                                      \
+    case CASE:                                                                          \
         return reinterpret_cast<const op::relu_backward::NAMESPACE::Descriptor *>(desc) \
             ->calculate(workspace, workspace_size, grad_input, {input, grad_output}, stream)
 
@@ -116,8 +116,8 @@ __C infiniStatus_t infiniopReluBackward(
 
 __C infiniStatus_t infiniopDestroyReluBackwardDescriptor(infiniopReluBackwardDescriptor_t desc) {
 
-#define DELETE(CASE, NAMESPACE)                                                         \
-    case CASE:                                                                          \
+#define DELETE(CASE, NAMESPACE)                                                          \
+    case CASE:                                                                           \
         delete reinterpret_cast<const op::relu_backward::NAMESPACE::Descriptor *>(desc); \
         return INFINI_STATUS_SUCCESS
 

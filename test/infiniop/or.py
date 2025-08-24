@@ -134,9 +134,7 @@ def test(
 
     workspace_size = c_uint64(0)
     check_error(
-        LIBINFINIOP.infiniopGetOrWorkspaceSize(
-            descriptor, ctypes.byref(workspace_size)
-        )
+        LIBINFINIOP.infiniopGetOrWorkspaceSize(descriptor, ctypes.byref(workspace_size))
     )
     workspace = TestWorkspace(workspace_size.value, c.device)
 
@@ -182,5 +180,3 @@ if __name__ == "__main__":
         test_operator(device, test, _TEST_CASES, _TENSOR_DTYPES)
 
     print("\033[92mTest passed!\033[0m")
-
-
