@@ -29,27 +29,27 @@ infiniStatus_t Descriptor::create(
     return INFINI_STATUS_SUCCESS;
 }
 
-#define SWITCH_IN_TYPE(OUT_TYPE, IN_TYPE)                                                      \
-        switch(IN_TYPE){                                                                       \
-            case INFINI_DTYPE_I32:                                                             \
-                return _device_info->calculate<CastOp, OUT_TYPE, int32_t>(_info, output, inputs, stream);  \
-            case INFINI_DTYPE_I64:                                                                 \
-                return _device_info->calculate<CastOp, OUT_TYPE, int64_t>(_info, output, inputs, stream);  \
-            case INFINI_DTYPE_U32:                                                                 \
-                return _device_info->calculate<CastOp, OUT_TYPE, uint32_t>(_info, output, inputs, stream); \
-            case INFINI_DTYPE_U64:                                                                 \
-                return _device_info->calculate<CastOp, OUT_TYPE, uint64_t>(_info, output, inputs, stream); \
-            case INFINI_DTYPE_F16:                                                                 \
-                return _device_info->calculate<CastOp, OUT_TYPE, fp16_t>(_info, output, inputs, stream);   \
-            case INFINI_DTYPE_F32:                                                                 \
-                return _device_info->calculate<CastOp, OUT_TYPE, float>(_info, output, inputs, stream);    \
-            case INFINI_DTYPE_F64:                                                                 \
-                return _device_info->calculate<CastOp, OUT_TYPE, double>(_info, output, inputs, stream);   \
-            case INFINI_DTYPE_BF16:                                                                \
-                return _device_info->calculate<CastOp, OUT_TYPE, bf16_t>(_info, output, inputs, stream);   \
-            default:                                                                               \
-                return INFINI_STATUS_BAD_TENSOR_DTYPE;                                             \
-        }
+#define SWITCH_IN_TYPE(OUT_TYPE, IN_TYPE)                                                          \
+    switch (IN_TYPE) {                                                                             \
+    case INFINI_DTYPE_I32:                                                                         \
+        return _device_info->calculate<CastOp, OUT_TYPE, int32_t>(_info, output, inputs, stream);  \
+    case INFINI_DTYPE_I64:                                                                         \
+        return _device_info->calculate<CastOp, OUT_TYPE, int64_t>(_info, output, inputs, stream);  \
+    case INFINI_DTYPE_U32:                                                                         \
+        return _device_info->calculate<CastOp, OUT_TYPE, uint32_t>(_info, output, inputs, stream); \
+    case INFINI_DTYPE_U64:                                                                         \
+        return _device_info->calculate<CastOp, OUT_TYPE, uint64_t>(_info, output, inputs, stream); \
+    case INFINI_DTYPE_F16:                                                                         \
+        return _device_info->calculate<CastOp, OUT_TYPE, fp16_t>(_info, output, inputs, stream);   \
+    case INFINI_DTYPE_F32:                                                                         \
+        return _device_info->calculate<CastOp, OUT_TYPE, float>(_info, output, inputs, stream);    \
+    case INFINI_DTYPE_F64:                                                                         \
+        return _device_info->calculate<CastOp, OUT_TYPE, double>(_info, output, inputs, stream);   \
+    case INFINI_DTYPE_BF16:                                                                        \
+        return _device_info->calculate<CastOp, OUT_TYPE, bf16_t>(_info, output, inputs, stream);   \
+    default:                                                                                       \
+        return INFINI_STATUS_BAD_TENSOR_DTYPE;                                                     \
+    }
 
 infiniStatus_t Descriptor::calculate(
     void *workspace,
@@ -61,21 +61,21 @@ infiniStatus_t Descriptor::calculate(
     // Handle type conversions based on input and output types
     switch (_output_dtype) {
     case INFINI_DTYPE_I32:
-        SWITCH_IN_TYPE(int32_t,_input_dtype)
+        SWITCH_IN_TYPE(int32_t, _input_dtype)
     case INFINI_DTYPE_I64:
-        SWITCH_IN_TYPE(int64_t,_input_dtype)
+        SWITCH_IN_TYPE(int64_t, _input_dtype)
     case INFINI_DTYPE_U32:
-        SWITCH_IN_TYPE(uint32_t,_input_dtype)
+        SWITCH_IN_TYPE(uint32_t, _input_dtype)
     case INFINI_DTYPE_U64:
-        SWITCH_IN_TYPE(uint64_t,_input_dtype)
+        SWITCH_IN_TYPE(uint64_t, _input_dtype)
     case INFINI_DTYPE_F16:
-        SWITCH_IN_TYPE(fp16_t,_input_dtype)
+        SWITCH_IN_TYPE(fp16_t, _input_dtype)
     case INFINI_DTYPE_F32:
-        SWITCH_IN_TYPE(float,_input_dtype)
+        SWITCH_IN_TYPE(float, _input_dtype)
     case INFINI_DTYPE_F64:
-        SWITCH_IN_TYPE(double,_input_dtype)
+        SWITCH_IN_TYPE(double, _input_dtype)
     case INFINI_DTYPE_BF16:
-        SWITCH_IN_TYPE(bf16_t,_input_dtype)
+        SWITCH_IN_TYPE(bf16_t, _input_dtype)
     default:
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }

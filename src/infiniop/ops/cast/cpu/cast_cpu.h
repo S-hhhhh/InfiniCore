@@ -1,8 +1,8 @@
 #ifndef CAST_CPU_H
 #define CAST_CPU_H
 
-#include "../../../elementwise/cpu/elementwise_cpu.h"
 #include "../../../../utils/custom_types.h"
+#include "../../../elementwise/cpu/elementwise_cpu.h"
 #include <type_traits>
 
 namespace op::cast::cpu {
@@ -47,9 +47,9 @@ public:
 struct CastOp {
 public:
     static constexpr size_t num_inputs = 1;
-    template<typename OUT_TYPE, typename IN_TYPE>
+    template <typename OUT_TYPE, typename IN_TYPE>
     OUT_TYPE operator()(const IN_TYPE &x) const {
-        return utils::cast<OUT_TYPE,IN_TYPE>(x);
+        return utils::cast<OUT_TYPE, IN_TYPE>(x);
     }
 };
 

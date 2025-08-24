@@ -3,8 +3,8 @@
 #define HARDSWISH_CPU_H
 
 #include "../../../elementwise/cpu/elementwise_cpu.h"
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 ELEMENTWISE_DESCRIPTOR(hardswish, cpu)
 

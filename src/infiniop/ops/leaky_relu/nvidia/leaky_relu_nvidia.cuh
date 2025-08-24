@@ -1,9 +1,8 @@
 #ifndef LEAKY_RELU_NVIDIA_API_H
 #define LEAKY_RELU_NVIDIA_API_H
 
-#include "../../../elementwise/nvidia/elementwise_nvidia_api.cuh"
 #include "../../../../utils/custom_types.h"
-
+#include "../../../elementwise/nvidia/elementwise_nvidia_api.cuh"
 
 namespace op::leaky_relu::nvidia {
 class Descriptor final : public InfiniopDescriptor {
@@ -46,5 +45,5 @@ public:
         std::vector<const void *> inputs,
         void *stream) const;
 };
-}
+} // namespace op::leaky_relu::nvidia
 #endif // LEAKY_RELU_NVIDIA_API_H

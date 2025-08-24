@@ -43,6 +43,6 @@ public:
         std::vector<const void *> inputs,
         void *stream) const;
 };
-}
+} // namespace op::cast::metax
 
 #endif // CAST_METAX_API_H

@@ -20,12 +20,12 @@ __C infiniStatus_t infiniopCreateWhereDescriptor(
     infiniopTensorDescriptor_t a,
     infiniopTensorDescriptor_t b) {
 
-#define CREATE(CASE, NAMESPACE)                                             \
-    case CASE:                                                              \
-        return op::where::NAMESPACE::Descriptor::create(                    \
-            handle,                                                         \
+#define CREATE(CASE, NAMESPACE)                                              \
+    case CASE:                                                               \
+        return op::where::NAMESPACE::Descriptor::create(                     \
+            handle,                                                          \
             reinterpret_cast<op::where::NAMESPACE::Descriptor **>(desc_ptr), \
-            c,                                                              \
+            c,                                                               \
             {condition, a, b})
 
     switch (handle->device) {
@@ -52,8 +52,8 @@ __C infiniStatus_t infiniopCreateWhereDescriptor(
 
 __C infiniStatus_t infiniopGetWhereWorkspaceSize(infiniopWhereDescriptor_t desc, size_t *size) {
 
-#define GET(CASE, NAMESPACE)                                                                \
-    case CASE:                                                                              \
+#define GET(CASE, NAMESPACE)                                                                 \
+    case CASE:                                                                               \
         *size = reinterpret_cast<op::where::NAMESPACE::Descriptor *>(desc)->workspaceSize(); \
         return INFINI_STATUS_SUCCESS;
 
@@ -87,8 +87,8 @@ __C infiniStatus_t infiniopWhere(
     const void *b,
     void *stream) {
 
-#define CALCULATE(CASE, NAMESPACE)                                             \
-    case CASE:                                                                 \
+#define CALCULATE(CASE, NAMESPACE)                                              \
+    case CASE:                                                                  \
         return reinterpret_cast<const op::where::NAMESPACE::Descriptor *>(desc) \
             ->calculate(workspace, workspace_size, c, {condition, a, b}, stream)
 
@@ -117,8 +117,8 @@ __C infiniStatus_t infiniopWhere(
 __C infiniStatus_t
 infiniopDestroyWhereDescriptor(infiniopWhereDescriptor_t desc) {
 
-#define DELETE(CASE, NAMESPACE)                                                 \
-    case CASE:                                                                  \
+#define DELETE(CASE, NAMESPACE)                                                  \
+    case CASE:                                                                   \
         delete reinterpret_cast<const op::where::NAMESPACE::Descriptor *>(desc); \
         return INFINI_STATUS_SUCCESS;
 

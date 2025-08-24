@@ -12,13 +12,13 @@ public:
             // For half2, process each half separately using CUDA intrinsics
             half x_low = __low2half(x);
             half x_high = __high2half(x);
-            
+
             float x_low_f = __half2float(x_low);
             float x_high_f = __half2float(x_high);
-            
+
             half cos_low = __float2half(cosf(x_low_f));
             half cos_high = __float2half(cosf(x_high_f));
-            
+
             return __halves2half2(cos_low, cos_high);
         } else if constexpr (std::is_same_v<T, half>) {
             // Convert to float for computation to maintain precision

@@ -36,9 +36,11 @@ _TEST_CASES_ = [
     ((3, 3, 13, 9, 17),),
 ]
 
+
 class Inplace(Enum):
     OUT_OF_PLACE = auto()
     INPLACE_INPUT = auto()
+
 
 # Inplace options applied for each test case in _TEST_CASES_
 _INPLACE = [
@@ -69,6 +71,7 @@ NUM_ITERATIONS = 1000
 
 _hswish = torch.nn.Hardswish(inplace=False)
 
+
 def hardswish(x):
     """
     Reference HardSwish using PyTorch:
@@ -76,6 +79,7 @@ def hardswish(x):
     """
     # return torch.nn.functional.hardswish(x).to(x.dtype)
     return _hswish(x).to(x.dtype)
+
 
 def test(
     handle, device, shape, inplace=Inplace.OUT_OF_PLACE, dtype=torch.float16, sync=None
@@ -115,7 +119,10 @@ def test(
     descriptor = infiniopOperatorDescriptor_t()
     check_error(
         LIBINFINIOP.infiniopCreateHardSwishDescriptor(
-            handle, ctypes.byref(descriptor), output_tensor.descriptor, input_tensor.descriptor
+            handle,
+            ctypes.byref(descriptor),
+            output_tensor.descriptor,
+            input_tensor.descriptor,
         )
     )
 
@@ -153,11 +160,20 @@ def test(
 
     # Profiling (optional)
     if PROFILE:
-        profile_operation("PyTorch", lambda: hardswish(input_tensor.torch_tensor()), device, NUM_PRERUN, NUM_ITERATIONS)
-        profile_operation("    lib", lambda: lib_hardswish(), device, NUM_PRERUN, NUM_ITERATIONS)
+        profile_operation(
+            "PyTorch",
+            lambda: hardswish(input_tensor.torch_tensor()),
+            device,
+            NUM_PRERUN,
+            NUM_ITERATIONS,
+        )
+        profile_operation(
+            "    lib", lambda: lib_hardswish(), device, NUM_PRERUN, NUM_ITERATIONS
+        )
 
     # Clean up
     check_error(LIBINFINIOP.infiniopDestroyHardSwishDescriptor(descriptor))
+
 
 if __name__ == "__main__":
     args = get_args()

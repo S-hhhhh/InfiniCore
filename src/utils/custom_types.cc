@@ -4,8 +4,8 @@
 
 bool _f16_to_bool(fp16_t val) {
     uint16_t h = val._v;
-    const uint16_t exponent_mask = 0x7C00;  // 指数掩码 (5 bits)
-    const uint16_t mantissa_mask = 0x03FF;  // 尾数掩码 (10 bits)
+    const uint16_t exponent_mask = 0x7C00; // 指数掩码 (5 bits)
+    const uint16_t mantissa_mask = 0x03FF; // 尾数掩码 (10 bits)
     // 判断条件：当指数和尾数全为0时表示浮点0值（无论正负）
     return (h & (exponent_mask | mantissa_mask)) != 0;
 }

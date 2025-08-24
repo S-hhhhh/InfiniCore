@@ -45,7 +45,6 @@ _TYPE_CONVERSIONS_ = [
     (InfiniDtype.U64, InfiniDtype.U32),
     (InfiniDtype.I32, InfiniDtype.U32),
     (InfiniDtype.U32, InfiniDtype.I32),
-
     # Integer to float conversions
     (InfiniDtype.I32, InfiniDtype.F32),
     (InfiniDtype.I32, InfiniDtype.F64),
@@ -55,7 +54,6 @@ _TYPE_CONVERSIONS_ = [
     (InfiniDtype.U32, InfiniDtype.F64),
     (InfiniDtype.U64, InfiniDtype.F32),
     (InfiniDtype.U64, InfiniDtype.F64),
-
     # Float to integer conversions
     (InfiniDtype.F32, InfiniDtype.I32),
     (InfiniDtype.F32, InfiniDtype.I64),
@@ -65,7 +63,6 @@ _TYPE_CONVERSIONS_ = [
     (InfiniDtype.F32, InfiniDtype.U64),
     (InfiniDtype.F64, InfiniDtype.U32),
     (InfiniDtype.F64, InfiniDtype.U64),
-
     # Float to float conversions
     (InfiniDtype.F32, InfiniDtype.F64),
     (InfiniDtype.F64, InfiniDtype.F32),
@@ -120,10 +117,14 @@ def test(
     # Create input tensor with appropriate data based on type
     if input_dtype in [InfiniDtype.I32, InfiniDtype.I64]:
         # Signed integer: use both positive and negative values
-        input_tensor = TestTensor(shape, input_stride, input_dtype, device, mode="randint", low=-50, high=50)
+        input_tensor = TestTensor(
+            shape, input_stride, input_dtype, device, mode="randint", low=-50, high=50
+        )
     elif input_dtype in [InfiniDtype.U32, InfiniDtype.U64]:
         # Unsigned integer: use positive values
-        input_tensor = TestTensor(shape, input_stride, input_dtype, device, mode="randint", low=0, high=100)
+        input_tensor = TestTensor(
+            shape, input_stride, input_dtype, device, mode="randint", low=0, high=100
+        )
     else:
         # Float: use random values
         input_tensor = TestTensor(shape, input_stride, input_dtype, device)
@@ -180,13 +181,28 @@ def test(
 
     atol, rtol = get_tolerance(_TOLERANCE_MAP, output_dtype)
     if DEBUG:
-        debug(output_tensor.actual_tensor(), output_tensor.torch_tensor(), atol=atol, rtol=rtol)
+        debug(
+            output_tensor.actual_tensor(),
+            output_tensor.torch_tensor(),
+            atol=atol,
+            rtol=rtol,
+        )
 
     # For integer types, use exact comparison
-    if output_dtype in [InfiniDtype.I32, InfiniDtype.I64, InfiniDtype.U32, InfiniDtype.U64]:
+    if output_dtype in [
+        InfiniDtype.I32,
+        InfiniDtype.I64,
+        InfiniDtype.U32,
+        InfiniDtype.U64,
+    ]:
         assert torch.equal(output_tensor.actual_tensor(), output_tensor.torch_tensor())
     else:
-        assert torch.allclose(output_tensor.actual_tensor(), output_tensor.torch_tensor(), atol=atol, rtol=rtol)
+        assert torch.allclose(
+            output_tensor.actual_tensor(),
+            output_tensor.torch_tensor(),
+            atol=atol,
+            rtol=rtol,
+        )
 
     # Profiling workflow
     if PROFILE:
@@ -212,11 +228,15 @@ if __name__ == "__main__":
     print(f"Type conversions tested: {len(_TYPE_CONVERSIONS_)}")
     print("\nType conversion matrix:")
     for i, (input_dtype, output_dtype) in enumerate(_TYPE_CONVERSIONS_):
-        print(f"  {i+1:2d}. {InfiniDtypeNames[input_dtype]:>6} -> {InfiniDtypeNames[output_dtype]:<6}")
+        print(
+            f"  {i+1:2d}. {InfiniDtypeNames[input_dtype]:>6} -> {InfiniDtypeNames[output_dtype]:<6}"
+        )
     print()
 
     for device in get_test_devices(args):
         print(f"\033[93mTesting on device: {InfiniDeviceNames[device]}\033[0m")
-        test_operator(device, test, _TEST_CASES, [])  # Empty dtype list since we handle dtypes in test cases
+        test_operator(
+            device, test, _TEST_CASES, []
+        )  # Empty dtype list since we handle dtypes in test cases
 
     print("\033[92mAll Cast tests passed!\033[0m")

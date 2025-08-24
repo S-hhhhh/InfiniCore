@@ -8,7 +8,7 @@ public:
     template <typename T>
     __device__ __forceinline__ T operator()(const T &input, const T &grad_output) const {
         T sigmoid_val;
-        
+
         if constexpr (std::is_same_v<T, half2>) {
             // For half2, process each component
             half2 one = __float2half2_rn(1.0f);
@@ -42,6 +42,7 @@ public:
             return grad_output * sigmoid_val * (static_cast<T>(1.0) - sigmoid_val);
         }
     }
+
 private:
     __device__ __forceinline__ half sigmoid(const half &x) const {
         return __float2half(__fdiv_rn(1.0f, __fadd_rn(1.0f, expf(__half2float(-x)))));

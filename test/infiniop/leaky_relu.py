@@ -160,7 +160,6 @@
 #     print("\033[92mTest passed!\033[0m")
 
 
-
 import ctypes
 from ctypes import c_uint64, c_float
 from enum import Enum, auto
@@ -239,7 +238,13 @@ def leaky_relu(x, negative_slope=0.01):
 
 
 def test(
-    handle, device, shape, negative_slope, inplace=Inplace.OUT_OF_PLACE, dtype=torch.float16, sync=None
+    handle,
+    device,
+    shape,
+    negative_slope,
+    inplace=Inplace.OUT_OF_PLACE,
+    dtype=torch.float16,
+    sync=None,
 ):
     # Generate test data with both positive and negative values to test LeakyReLU properly
     input_torch_tensor = torch.randn(shape) * 2  # Range around [-2, 2]
@@ -273,11 +278,11 @@ def test(
     descriptor = infiniopOperatorDescriptor_t()
     check_error(
         LIBINFINIOP.infiniopCreateLeakyReLUDescriptor(
-            handle, 
-            ctypes.byref(descriptor), 
-            output.descriptor, 
+            handle,
+            ctypes.byref(descriptor),
+            output.descriptor,
             input_tensor.descriptor,
-            c_float(negative_slope)
+            c_float(negative_slope),
         )
     )
 
@@ -295,16 +300,15 @@ def test(
 
     def lib_leaky_relu():
         LIBINFINIOP.infiniopLeakyReLU(
-            descriptor, 
-            workspace.data(), 
-            workspace.size(), 
-            output.data(), 
-            input_tensor.data(), 
-            None
+            descriptor,
+            workspace.data(),
+            workspace.size(),
+            output.data(),
+            input_tensor.data(),
+            None,
         )
 
     lib_leaky_relu()
-
 
     atol, rtol = get_tolerance(_TOLERANCE_MAP, dtype)
     if DEBUG:

@@ -454,6 +454,7 @@ def swiglu_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def conv_(lib):
     lib.infiniopCreateConvDescriptor.restype = c_int32
@@ -490,6 +491,7 @@ def conv_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def exp_(lib):
     lib.infiniopCreateExpDescriptor.restype = c_int32
@@ -510,6 +512,7 @@ def exp_(lib):
     ]
     lib.infiniopDestroyExpDescriptor.restype = c_int32
     lib.infiniopDestroyExpDescriptor.argtypes = [infiniopOperatorDescriptor_t]
+
 
 @OpRegister.operator
 def sin_(lib):
@@ -532,6 +535,7 @@ def sin_(lib):
     lib.infiniopDestroySinDescriptor.restype = c_int32
     lib.infiniopDestroySinDescriptor.argtypes = [infiniopOperatorDescriptor_t]
 
+
 @OpRegister.operator
 def cos_(lib):
     lib.infiniopCreateCosDescriptor.restype = c_int32
@@ -552,6 +556,7 @@ def cos_(lib):
     ]
     lib.infiniopDestroyCosDescriptor.restype = c_int32
     lib.infiniopDestroyCosDescriptor.argtypes = [infiniopOperatorDescriptor_t]
+
 
 @OpRegister.operator
 def tanh_(lib):
@@ -608,6 +613,7 @@ def sigmoid_backward_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def hardswish_(lib):
     lib.infiniopCreateHardSwishDescriptor.restype = c_int32
@@ -628,6 +634,7 @@ def hardswish_(lib):
     ]
     lib.infiniopDestroyHardSwishDescriptor.restype = c_int32
     lib.infiniopDestroyHardSwishDescriptor.argtypes = [infiniopOperatorDescriptor_t]
+
 
 @OpRegister.operator
 def where_(lib):
@@ -664,6 +671,7 @@ def where_(lib):
         infiniopOperatorDescriptor_t,
     ]
 
+
 @OpRegister.operator
 def leaky_relu_(lib):
     lib.infiniopCreateLeakyReLUDescriptor.restype = c_int32
@@ -695,5 +703,3 @@ def leaky_relu_(lib):
     lib.infiniopDestroyLeakyReLUDescriptor.argtypes = [
         infiniopOperatorDescriptor_t,
     ]
-
-

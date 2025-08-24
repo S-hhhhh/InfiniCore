@@ -27,8 +27,8 @@ infiniStatus_t Descriptor::create(
     // create NVIDIA elementwise descriptor
     auto info_result = op::elementwise::ElementwiseInfo::create(out_desc, input_desc_vec);
     CHECK_RESULT(info_result);
-    auto info = info_result.take(); 
-    auto workspace_size = info.getMetaMemSize() + info.getInputSize() * sizeof(void *) + sizeof(float);//device negative_slope
+    auto info = info_result.take();
+    auto workspace_size = info.getMetaMemSize() + info.getInputSize() * sizeof(void *) + sizeof(float); // device negative_slope
     auto device_impl_result = op::elementwise::nvidia::DeviceImpl::create(handle->internal());
     CHECK_RESULT(device_impl_result);
 
@@ -44,7 +44,6 @@ infiniStatus_t Descriptor::create(
     return INFINI_STATUS_SUCCESS;
 }
 
-
 infiniStatus_t Descriptor::calculate(
     void *workspace,
     size_t workspace_size,
@@ -56,20 +55,20 @@ infiniStatus_t Descriptor::calculate(
         return INFINI_STATUS_INSUFFICIENT_WORKSPACE;
     }
     const int8_t *d_negative_slope_start = reinterpret_cast<int8_t *>(workspace) + workspace_size - sizeof(_negative_slope);
-    CHECK_CUDA(cudaMemcpyAsync((void *)d_negative_slope_start, 
-                    &_negative_slope, 
-                    sizeof(_negative_slope), 
-                    cudaMemcpyHostToDevice, 
-                    reinterpret_cast<cudaStream_t>(stream)));
+    CHECK_CUDA(cudaMemcpyAsync((void *)d_negative_slope_start,
+                               &_negative_slope,
+                               sizeof(_negative_slope),
+                               cudaMemcpyHostToDevice,
+                               reinterpret_cast<cudaStream_t>(stream)));
     switch (_dtype) {
     case INFINI_DTYPE_F16:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, half>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
+        return _device_info->calculate<256, cuda::LeakyReLUOp, half>(_info, workspace, output, inputs, stream, reinterpret_cast<const float *>(d_negative_slope_start));
     case INFINI_DTYPE_BF16:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, cuda_bfloat16>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
+        return _device_info->calculate<256, cuda::LeakyReLUOp, cuda_bfloat16>(_info, workspace, output, inputs, stream, reinterpret_cast<const float *>(d_negative_slope_start));
     case INFINI_DTYPE_F32:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, float>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
+        return _device_info->calculate<256, cuda::LeakyReLUOp, float>(_info, workspace, output, inputs, stream, reinterpret_cast<const float *>(d_negative_slope_start));
     case INFINI_DTYPE_F64:
-        return _device_info->calculate<256, cuda::LeakyReLUOp, double>(_info, workspace, output, inputs, stream, reinterpret_cast<const float*>(d_negative_slope_start));
+        return _device_info->calculate<256, cuda::LeakyReLUOp, double>(_info, workspace, output, inputs, stream, reinterpret_cast<const float *>(d_negative_slope_start));
     default:
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }

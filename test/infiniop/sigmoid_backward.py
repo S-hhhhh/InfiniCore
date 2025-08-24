@@ -37,10 +37,12 @@ _TEST_CASES_ = [
     ((4, 4, 5632), (45056, 5632, 1), (45056, 5632, 1), (45056, 5632, 1)),
 ]
 
+
 class Inplace(Enum):
     OUT_OF_PLACE = auto()
     INPLACE_INPUT = auto()
     INPLACE_GRAD_OUTPUT = auto()
+
 
 # 每个 case 都测试三种 inplace 方式
 _INPLACE = [
@@ -100,7 +102,9 @@ def test(
     sync=None,
 ):
     # 输入含正负值，便于覆盖 sigmoid 的不同区间
-    input_tensor = TestTensor(shape, input_stride, dtype, device, mode="random", scale=4.0, bias=-2.0)
+    input_tensor = TestTensor(
+        shape, input_stride, dtype, device, mode="random", scale=4.0, bias=-2.0
+    )
     grad_output = TestTensor(shape, grad_output_stride, dtype, device, mode="random")
 
     if inplace == Inplace.INPLACE_INPUT:
@@ -124,7 +128,11 @@ def test(
     )
 
     # 计算 PyTorch 参考结果（写入 grad_input.torch_tensor()）
-    sigmoid_backward(grad_input.torch_tensor(), input_tensor.torch_tensor(), grad_output.torch_tensor())
+    sigmoid_backward(
+        grad_input.torch_tensor(),
+        input_tensor.torch_tensor(),
+        grad_output.torch_tensor(),
+    )
 
     if sync is not None:
         sync()
@@ -173,13 +181,33 @@ def test(
     # 校验
     atol, rtol = get_tolerance(_TOLERANCE_MAP, dtype)
     if DEBUG:
-        debug(grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol)
-    assert torch.allclose(grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol)
+        debug(
+            grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol
+        )
+    assert torch.allclose(
+        grad_input.actual_tensor(), grad_input.torch_tensor(), atol=atol, rtol=rtol
+    )
 
     # 性能分析（可选）
     if PROFILE:
-        profile_operation("PyTorch", lambda: sigmoid_backward(grad_input.torch_tensor(), input_tensor.torch_tensor(), grad_output.torch_tensor()), device, NUM_PRERUN, NUM_ITERATIONS)
-        profile_operation("    lib", lambda: lib_sigmoid_backward(), device, NUM_PRERUN, NUM_ITERATIONS)
+        profile_operation(
+            "PyTorch",
+            lambda: sigmoid_backward(
+                grad_input.torch_tensor(),
+                input_tensor.torch_tensor(),
+                grad_output.torch_tensor(),
+            ),
+            device,
+            NUM_PRERUN,
+            NUM_ITERATIONS,
+        )
+        profile_operation(
+            "    lib",
+            lambda: lib_sigmoid_backward(),
+            device,
+            NUM_PRERUN,
+            NUM_ITERATIONS,
+        )
 
     check_error(LIBINFINIOP.infiniopDestroySigmoidBackwardDescriptor(descriptor))
 

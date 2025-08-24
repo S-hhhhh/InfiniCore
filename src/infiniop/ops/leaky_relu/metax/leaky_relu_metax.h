@@ -44,6 +44,6 @@ public:
         std::vector<const void *> inputs,
         void *stream) const;
 };
-}
+} // namespace op::leaky_relu::metax
 
 #endif // LEAKY_RELU_METAX_API_H

@@ -69,7 +69,7 @@ TypeTo cast(TypeFrom val) {
         //     return _f32_to_bf16(tmp);
         // }
         // else{
-            // return static_cast<TypeTo>(tmp);
+        // return static_cast<TypeTo>(tmp);
         // }
         return static_cast<TypeTo>(val);
     }

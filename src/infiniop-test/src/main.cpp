@@ -1,8 +1,8 @@
 #include "gguf.hpp"
 #include "test.hpp"
+#include <cstring>
 #include <infinirt.h>
 #include <iostream>
-#include <cstring>
 struct ParsedArgs {
     std::string file_path;                          // Mandatory argument: test.gguf file path
     infiniDevice_t device_type = INFINI_DEVICE_CPU; // Default to CPU
@@ -96,8 +96,9 @@ ParsedArgs parseArgs(int argc, char *argv[]) {
                 args.rtol = std::stod(argv[++i]);
             }
             else if (arg == "--equal-nan" && i + 1 < argc) {
-                args.equal_nan = (strcmp(argv[++i], "True") == 0 || strcmp(argv[i], "true") == 0) 
-                                                            ? true : false;
+                args.equal_nan = (strcmp(argv[++i], "True") == 0 || strcmp(argv[i], "true") == 0)
+                                   ? true
+                                   : false;
             }
             else {
                 printUsage();

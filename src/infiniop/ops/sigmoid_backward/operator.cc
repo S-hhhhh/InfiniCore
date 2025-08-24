@@ -19,13 +19,13 @@ __C infiniStatus_t infiniopCreateSigmoidBackwardDescriptor(
     infiniopTensorDescriptor_t input_desc,
     infiniopTensorDescriptor_t grad_output_desc) {
 
-#define CREATE(CASE, NAMESPACE)                                                              \
-    case CASE:                                                                               \
-        return op::sigmoid_backward::NAMESPACE::Descriptor::create(                         \
-            handle,                                                                          \
-            reinterpret_cast<op::sigmoid_backward::NAMESPACE::Descriptor **>(desc_ptr),     \
-            grad_input_desc,                                                                 \
-            {input_desc,                                                                     \
+#define CREATE(CASE, NAMESPACE)                                                         \
+    case CASE:                                                                          \
+        return op::sigmoid_backward::NAMESPACE::Descriptor::create(                     \
+            handle,                                                                     \
+            reinterpret_cast<op::sigmoid_backward::NAMESPACE::Descriptor **>(desc_ptr), \
+            grad_input_desc,                                                            \
+            {input_desc,                                                                \
              grad_output_desc})
 
     switch (handle->device) {
@@ -52,8 +52,8 @@ __C infiniStatus_t infiniopCreateSigmoidBackwardDescriptor(
 
 __C infiniStatus_t infiniopGetSigmoidBackwardWorkspaceSize(infiniopSigmoidBackwardDescriptor_t desc, size_t *size) {
 
-#define GET(CASE, NAMESPACE)                                                                           \
-    case CASE:                                                                                         \
+#define GET(CASE, NAMESPACE)                                                                            \
+    case CASE:                                                                                          \
         *size = reinterpret_cast<op::sigmoid_backward::NAMESPACE::Descriptor *>(desc)->workspaceSize(); \
         return INFINI_STATUS_SUCCESS
 
@@ -87,8 +87,8 @@ __C infiniStatus_t infiniopSigmoidBackward(
     const void *grad_output,
     void *stream) {
 
-#define CALCULATE(CASE, NAMESPACE)                                                      \
-    case CASE:                                                                          \
+#define CALCULATE(CASE, NAMESPACE)                                                         \
+    case CASE:                                                                             \
         return reinterpret_cast<const op::sigmoid_backward::NAMESPACE::Descriptor *>(desc) \
             ->calculate(workspace, workspace_size, grad_input, {input, grad_output}, stream)
 
@@ -117,8 +117,8 @@ __C infiniStatus_t infiniopSigmoidBackward(
 __C infiniStatus_t
 infiniopDestroySigmoidBackwardDescriptor(infiniopSigmoidBackwardDescriptor_t desc) {
 
-#define DELETE(CASE, NAMESPACE)                                                              \
-    case CASE:                                                                               \
+#define DELETE(CASE, NAMESPACE)                                                             \
+    case CASE:                                                                              \
         delete reinterpret_cast<const op::sigmoid_backward::NAMESPACE::Descriptor *>(desc); \
         return INFINI_STATUS_SUCCESS
 

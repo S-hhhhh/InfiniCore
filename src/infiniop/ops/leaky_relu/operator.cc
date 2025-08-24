@@ -19,14 +19,14 @@ __C infiniStatus_t infiniopCreateLeakyReLUDescriptor(
     infiniopTensorDescriptor_t input_desc,
     float negative_slope) {
 
-#define CREATE(CASE, NAMESPACE)                                                    \
-    case CASE:                                                                     \
-        return op::leaky_relu::NAMESPACE::Descriptor::create(                       \
-            infiniopHandle_t(handle),                                                                \
-            reinterpret_cast<op::leaky_relu::NAMESPACE::Descriptor **>(desc_ptr),   \
-            output_desc,                                                           \
-            std::vector<infiniopTensorDescriptor_t>{input_desc},                 \
-            negative_slope)                                                         \
+#define CREATE(CASE, NAMESPACE)                                                   \
+    case CASE:                                                                    \
+        return op::leaky_relu::NAMESPACE::Descriptor::create(                     \
+            infiniopHandle_t(handle),                                             \
+            reinterpret_cast<op::leaky_relu::NAMESPACE::Descriptor **>(desc_ptr), \
+            output_desc,                                                          \
+            std::vector<infiniopTensorDescriptor_t>{input_desc},                  \
+            negative_slope)
 
     switch (handle->device) {
 
@@ -52,8 +52,8 @@ __C infiniStatus_t infiniopCreateLeakyReLUDescriptor(
 
 __C infiniStatus_t infiniopGetLeakyReLUWorkspaceSize(infiniopLeakyReLUDescriptor_t desc, size_t *size) {
 
-#define GET(CASE, NAMESPACE)                                                                   \
-    case CASE:                                                                                 \
+#define GET(CASE, NAMESPACE)                                                                      \
+    case CASE:                                                                                    \
         *size = reinterpret_cast<op::leaky_relu::NAMESPACE::Descriptor *>(desc)->workspaceSize(); \
         return INFINI_STATUS_SUCCESS
 
@@ -86,9 +86,9 @@ __C infiniStatus_t infiniopLeakyReLU(
     const void *input,
     void *stream) {
 
-#define CALCULATE(CASE, NAMESPACE)                                                    \
-    case CASE:                                                                        \
-        return reinterpret_cast<const op::leaky_relu::NAMESPACE::Descriptor *>(desc)   \
+#define CALCULATE(CASE, NAMESPACE)                                                   \
+    case CASE:                                                                       \
+        return reinterpret_cast<const op::leaky_relu::NAMESPACE::Descriptor *>(desc) \
             ->calculate(workspace, workspace_size, output, {input}, stream)
 
     switch (desc->device_type) {
@@ -115,9 +115,9 @@ __C infiniStatus_t infiniopLeakyReLU(
 
 __C infiniStatus_t infiniopDestroyLeakyReLUDescriptor(infiniopLeakyReLUDescriptor_t desc) {
 
-#define DELETE(CASE, NAMESPACE)                                                        \
-    case CASE:                                                                         \
-        delete reinterpret_cast<const op::leaky_relu::NAMESPACE::Descriptor *>(desc);   \
+#define DELETE(CASE, NAMESPACE)                                                       \
+    case CASE:                                                                        \
+        delete reinterpret_cast<const op::leaky_relu::NAMESPACE::Descriptor *>(desc); \
         return INFINI_STATUS_SUCCESS
 
     switch (desc->device_type) {

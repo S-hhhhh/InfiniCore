@@ -43,5 +43,5 @@ public:
         std::vector<const void *> inputs,
         void *stream) const;
 };
-}
+} // namespace op::cast::nvidia
 #endif // CAST_NVIDIA_API_H

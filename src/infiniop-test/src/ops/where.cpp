@@ -30,10 +30,10 @@ std::shared_ptr<Test> Test::build(
     }
 
     test->_attributes->cond = tensors["condition"];
-    test->_attributes->a    = tensors["a"];
-    test->_attributes->b    = tensors["b"];
-    test->_attributes->out  = tensors["c"];
-    test->_attributes->ans  = tensors["ans"];
+    test->_attributes->a = tensors["a"];
+    test->_attributes->b = tensors["b"];
+    test->_attributes->out = tensors["c"];
+    test->_attributes->ans = tensors["ans"];
 
     return test;
 }
@@ -45,9 +45,9 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     infiniopWhereDescriptor_t op_desc;
 
     auto cond = _attributes->cond->to(device, device_id);
-    auto a    = _attributes->a->to(device, device_id);
-    auto b    = _attributes->b->to(device, device_id);
-    auto out  = _attributes->out->to(device, device_id);
+    auto a = _attributes->a->to(device, device_id);
+    auto b = _attributes->b->to(device, device_id);
+    auto out = _attributes->out->to(device, device_id);
 
     CHECK_OR(infiniopCreateWhereDescriptor(handle, &op_desc,
                                            out->desc(),
@@ -60,7 +60,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     CHECK_OR(infiniopGetWhereWorkspaceSize(op_desc, &workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to get workspace size."));
 
-    void* workspace;
+    void *workspace;
     CHECK_OR(infinirtMalloc(&workspace, workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to allocate workspace."));
 
@@ -75,7 +75,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     try {
         // where 输出通常与 a/b 同 dtype；若为整型/布尔，建议 rtol=0, atol=0
         allClose(out, _attributes->ans, _rtol, _atol, _equal_nan);
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         infiniopDestroyWhereDescriptor(op_desc);
         infinirtFree(workspace);
         return TEST_FAILED(RESULT_INCORRECT, e.what());
@@ -115,9 +115,9 @@ std::string Test::toString() const {
     std::ostringstream oss;
     oss << op_name() << std::endl;
     oss << "- condition: " << _attributes->cond->info() << std::endl;
-    oss << "- a: "    << _attributes->a->info()    << std::endl;
-    oss << "- b: "    << _attributes->b->info()    << std::endl;
-    oss << "- out: "  << _attributes->out->info()  << std::endl;
+    oss << "- a: " << _attributes->a->info() << std::endl;
+    oss << "- b: " << _attributes->b->info() << std::endl;
+    oss << "- out: " << _attributes->out->info() << std::endl;
     oss << std::scientific << std::setprecision(2);
     oss << "- rtol=" << _rtol << ", atol=" << _atol << ", equal_nan=" << _equal_nan << std::endl;
     return oss.str();

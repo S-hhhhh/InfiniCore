@@ -7,7 +7,7 @@ public:
     static constexpr size_t num_inputs = 1;
 
     // __host__ __device__ LeakyReLUOp() = default;
-    
+
     template <typename T>
     __device__ __forceinline__ T operator()(const T &x, const float *negative_slope) const {
         if constexpr (std::is_same_v<T, half2>) {

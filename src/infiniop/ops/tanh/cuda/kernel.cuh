@@ -27,12 +27,13 @@ public:
             return tanhf(x);
         }
     }
-    private:
+
+private:
     // Helper function for half precision tanh (assuming it exists or can be approximated)
     __device__ __forceinline__ half htanh(const half &x) const {
         return __float2half(tanhf(__half2float(x)));
     }
-    
+
     // Helper function for bfloat16 precision tanh (assuming it exists or can be approximated)
     __device__ __forceinline__ cuda_bfloat16 htanh(const cuda_bfloat16 &x) const {
         return __float2bfloat16(tanhf(__bfloat162float(x)));

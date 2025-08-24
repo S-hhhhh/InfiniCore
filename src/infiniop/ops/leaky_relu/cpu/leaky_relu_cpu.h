@@ -4,7 +4,6 @@
 #include "../../../elementwise/cpu/elementwise_cpu.h"
 #include <cmath>
 
-
 namespace op::leaky_relu::cpu {
 class Descriptor final : public InfiniopDescriptor {
     infiniDtype_t _dtype;
@@ -46,11 +45,11 @@ public:
         std::vector<const void *> inputs,
         void *stream) const;
 };
-    
+
 typedef struct LeakyReLUOp {
 public:
     static constexpr size_t num_inputs = 1;
-    
+
     template <typename T>
     T operator()(const T &x, float negative_slope) const {
         // LeakyReLU(x) = max(0, x) + negative_slope * min(0, x)
@@ -71,7 +70,7 @@ public:
             return x >= T(0) ? x : static_cast<T>(negative_slope) * x;
         }
     }
-    
+
 } LeakyReLUOp;
 
 } // namespace op::leaky_relu::cpu

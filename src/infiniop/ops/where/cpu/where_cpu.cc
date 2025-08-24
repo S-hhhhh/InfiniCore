@@ -26,7 +26,7 @@ infiniStatus_t Descriptor::create(
                 INFINI_DTYPE_I8, INFINI_DTYPE_I16, INFINI_DTYPE_I32, INFINI_DTYPE_I64,
                 INFINI_DTYPE_U8, INFINI_DTYPE_U16, INFINI_DTYPE_U32, INFINI_DTYPE_U64,
                 INFINI_DTYPE_BOOL);
-    
+
     if (a_desc->dtype() != dtype || b_desc->dtype() != dtype) {
         return INFINI_STATUS_BAD_TENSOR_DTYPE;
     }

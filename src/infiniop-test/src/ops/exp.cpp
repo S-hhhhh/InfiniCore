@@ -25,9 +25,9 @@ std::shared_ptr<Test> Test::build(
         throw std::runtime_error("Invalid Test");
     }
 
-    test->_attributes->input  = tensors["input"];
+    test->_attributes->input = tensors["input"];
     test->_attributes->output = tensors["output"];
-    test->_attributes->ans    = tensors["ans"];
+    test->_attributes->ans = tensors["ans"];
     return test;
 }
 
@@ -37,7 +37,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 
     infiniopExpDescriptor_t op_desc;
 
-    auto input  = _attributes->input->to(device, device_id);
+    auto input = _attributes->input->to(device, device_id);
     auto output = _attributes->output->to(device, device_id);
 
     CHECK_OR(infiniopCreateExpDescriptor(handle, &op_desc,
@@ -49,7 +49,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
     CHECK_OR(infiniopGetExpWorkspaceSize(op_desc, &workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to get workspace size."));
 
-    void* workspace;
+    void *workspace;
     CHECK_OR(infinirtMalloc(&workspace, workspace_size),
              return TEST_FAILED(OP_CREATION_FAILED, "Failed to allocate workspace."));
 
@@ -61,7 +61,7 @@ std::shared_ptr<infiniop_test::Result> Test::run(
 
     try {
         allClose(output, _attributes->ans, _rtol, _atol, _equal_nan);
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         infiniopDestroyExpDescriptor(op_desc);
         infinirtFree(workspace);
         return TEST_FAILED(RESULT_INCORRECT, e.what());
@@ -91,7 +91,7 @@ std::vector<std::string> Test::output_names() { return {"output"}; }
 std::string Test::toString() const {
     std::ostringstream oss;
     oss << op_name() << std::endl;
-    oss << "- input: "  << _attributes->input->info()  << std::endl;
+    oss << "- input: " << _attributes->input->info() << std::endl;
     oss << "- output: " << _attributes->output->info() << std::endl;
     oss << std::scientific << std::setprecision(2);
     oss << "- rtol=" << _rtol << ", atol=" << _atol << ", equal_nan=" << _equal_nan << std::endl;

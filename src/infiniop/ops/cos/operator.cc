@@ -18,12 +18,12 @@ __C infiniStatus_t infiniopCreateCosDescriptor(
     infiniopTensorDescriptor_t output_desc,
     infiniopTensorDescriptor_t input_desc) {
 
-#define CREATE(CASE, NAMESPACE)                                             \
-    case CASE:                                                              \
-        return op::cos::NAMESPACE::Descriptor::create(                      \
-            handle,                                                         \
-            reinterpret_cast<op::cos::NAMESPACE::Descriptor **>(desc_ptr),  \
-            output_desc,                                                    \
+#define CREATE(CASE, NAMESPACE)                                            \
+    case CASE:                                                             \
+        return op::cos::NAMESPACE::Descriptor::create(                     \
+            handle,                                                        \
+            reinterpret_cast<op::cos::NAMESPACE::Descriptor **>(desc_ptr), \
+            output_desc,                                                   \
             {input_desc})
 
     switch (handle->device) {
@@ -50,8 +50,8 @@ __C infiniStatus_t infiniopCreateCosDescriptor(
 
 __C infiniStatus_t infiniopGetCosWorkspaceSize(infiniopCosDescriptor_t desc, size_t *size) {
 
-#define GET(CASE, NAMESPACE)                                                                \
-    case CASE:                                                                              \
+#define GET(CASE, NAMESPACE)                                                               \
+    case CASE:                                                                             \
         *size = reinterpret_cast<op::cos::NAMESPACE::Descriptor *>(desc)->workspaceSize(); \
         return INFINI_STATUS_SUCCESS
 
@@ -84,9 +84,9 @@ __C infiniStatus_t infiniopCos(
     const void *input,
     void *stream) {
 
-#define CALCULATE(CASE, NAMESPACE)                                             \
-    case CASE:                                                                 \
-        return reinterpret_cast<const op::cos::NAMESPACE::Descriptor *>(desc)  \
+#define CALCULATE(CASE, NAMESPACE)                                            \
+    case CASE:                                                                \
+        return reinterpret_cast<const op::cos::NAMESPACE::Descriptor *>(desc) \
             ->calculate(workspace, workspace_size, output, {input}, stream)
 
     switch (desc->device_type) {
@@ -113,8 +113,8 @@ __C infiniStatus_t infiniopCos(
 
 __C infiniStatus_t infiniopDestroyCosDescriptor(infiniopCosDescriptor_t desc) {
 
-#define DELETE(CASE, NAMESPACE)                                                 \
-    case CASE:                                                                  \
+#define DELETE(CASE, NAMESPACE)                                                \
+    case CASE:                                                                 \
         delete reinterpret_cast<const op::cos::NAMESPACE::Descriptor *>(desc); \
         return INFINI_STATUS_SUCCESS
 
